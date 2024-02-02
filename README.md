@@ -15,7 +15,7 @@ Stable Diffusion is a popular open source project for generating images using Ge
 
 ## Documentations
 
-Check out our [live docs]! (https://aws-samples.github.io/stable-diffusion-on-eks/en/)
+Check out our [live docs](https://aws-samples.github.io/stable-diffusion-on-eks/en/)!
 
 ## Security
 
