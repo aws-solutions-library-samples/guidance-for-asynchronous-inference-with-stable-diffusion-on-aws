@@ -1,4 +1,4 @@
-# Stable Diffusion on EKS
+# Guidance for asynchronous inference with Stable Diffusion-Web UI on AWS
 
 Implementing a fast scaling and low cost Stable Diffusion inference solution with serverless and containers on AWS
 
@@ -15,7 +15,7 @@ Stable Diffusion is a popular open source project for generating images using Ge
 
 ## Documentations
 
-Check out our live docs! ([English](https://aws-samples.github.io/stable-diffusion-on-eks/en/) | [简体中文](https://aws-samples.github.io/stable-diffusion-on-eks/zh/))
+Check out our [live docs]! (https://aws-samples.github.io/stable-diffusion-on-eks/en/)
 
 ## Security
 

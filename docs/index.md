@@ -1,4 +1,4 @@
-# Stable Diffusion on EKS
+# Guidance for asynchronous inference with Stable Diffusion-Web UI on AWS
 
 Implementing a fast scaling and low cost Stable Diffusion inference solution with serverless and containers on AWS
 

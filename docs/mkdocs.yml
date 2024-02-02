@@ -1,7 +1,7 @@
-site_name: Stable Diffusion on Amazon EKS
-site_url: https://yubingjiaocn.github.io/stable-diffusion-on-eks/
-repo_url: https://github.com/aws-samples/stable-diffusion-on-eks/
-repo_name: aws-samples/stable-diffusion-on-eks
+site_name: Guidance for asynchronous inference with Stable Diffusion-Web UI on AWS
+site_url: https://aws-solutions-library-samples.github.io/guidance-for-asynchronous-inference-with-stable-diffusion-webui-on-aws/
+repo_url: https://github.com/aws-solutions-library-samples/guidance-for-asynchronous-inference-with-stable-diffusion-webui-on-aws/
+repo_name: aws-solutions-library-samples/guidance-for-asynchronous-inference-with-stable-diffusion-webui-on-aws/
 docs_dir: .
 site_dir: ../site/
 theme:
@@ -22,9 +22,6 @@ extra:
     - name: English
       link: /stable-diffusion-on-eks/en/
       lang: en
-    - name: 简体中文
-      link: /stable-diffusion-on-eks/zh/
-      lang: zh
 
 plugins:
   - search
