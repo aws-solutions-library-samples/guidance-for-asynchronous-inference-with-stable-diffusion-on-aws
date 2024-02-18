@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-import * as cdk from 'aws-cdk-lib';
+import { App, Aspects } from 'aws-cdk-lib';
 import DataPlaneStack from "../lib/dataPlane";
 import { parse } from 'yaml'
 import * as fs from 'fs'
+import { AwsSolutionsChecks } from 'cdk-nag';
 
-const app = new cdk.App();
+const app = new App();
 
 const env = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -26,3 +27,5 @@ const dataPlaneStack = new DataPlaneStack(app, props.stackName, props, {
    env: env,
    description: "(SO9306) - Guidance for asynchronous image generation with Stable Diffusion on AWS"
   });
+
+Aspects.of(app).add(new AwsSolutionsChecks());
