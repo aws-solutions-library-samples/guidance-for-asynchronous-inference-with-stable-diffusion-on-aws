@@ -15,14 +15,17 @@ Stable Diffusion is a popular open source project for generating images using Ge
 
 ## Architecture diagram
 <!-- {% include image.html file="async_img_sd_images/IG_Figure1.png" alt="architecture" %} -->
-<img source="async_img_sd_images/stable_diffusion_architecture_diagram.jpg" alt="architecture" />
-
-*Figure 1: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS architecture*
+<!-- img src="./low-latency-high-bandwidth-updated-architecture.jpg" width="90%" --> 
+<div align="center">
+<img src="docs/en/images/stable_diffusion_architecture_diagram.jpg" width="90%">
+<br/>
+Figure 1: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS architecture
+</div>
 
 ### Architecture steps
 
-1. Users send prompts to an application running on [AWS Fargate](https://aws.amazon.com/fargate/) through an [Application Load Balancing](https://aws.amazon.com/elasticloadbalancing/application-load-balancer/) endpoint.
-2. An application sends the prompt to [Amazon API Gateway](https://aws.amazon.com/api-gateway/) that acts as an endpoint for the overall Guidance, including authentication. [AWS Lambda](https://aws.amazon.com/lambda/) function validates the requests, publishes them to the designated [Amazon Simple Notification Service](https://aws.amazon.com/sns/) (Amazon SNS) topic, and immediately returns a response.
+1. Users send prompts to an application running on [AWS ECS Fargate](https://aws.amazon.com/fargate/) through an [Application Load Balancing](https://aws.amazon.com/elasticloadbalancing/application-load-balancer/) endpoint.
+2. An application sends prompt to [Amazon API Gateway](https://aws.amazon.com/api-gateway/) that acts as an endpoint for the overall solution, including authentication. [AWS Lambda](https://aws.amazon.com/lambda/) function validates the requests, publishes them to the designated [Amazon Simple Notification Service](https://aws.amazon.com/sns/) (Amazon SNS) topic, and immediately returns a response.
 3. Amazon SNS publishes the message to [Amazon Simple Queue Service](https://aws.amazon.com/sqs/) (Amazon SQS) queues. Each message contains a [Stable Diffusion](https://github.com/AUTOMATIC1111/stable-diffusion-webui) (SD) model name attribute and will be delivered to the queues with matching SD model names.
 4. In the [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/) (Amazon EKS) cluster, the previously deployed open source Kubernetes Event Driven Auto-Scaler (KEDA) scales up new pods to process the incoming messages from SQS model processing queues.
 5. In the Amazon EKS cluster, Karpenter, an open source Kubernetes compute auto-scaler, launches new compute nodes based on GPU [Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/) (Amazon EC2) Spot instances (such as G4, G5, and P4) to schedule pending pods. The instances use pre-cached SD Runtime images and are based on [Bottlerocket OS](https://aws.amazon.com/bottlerocket/) for fast boot.
