@@ -1,0 +1,38 @@
+stackName: ${STACK_NAME}
+modelBucketArn: arn:aws:s3:::${MODEL_BUCKET}
+APIGW:
+  stageName: dev
+  throttle:
+    rateLimit: 30
+    burstLimit: 50
+modelsRuntime:
+- name: ${RUNTIME_NAME}
+  namespace: "default"
+  modelFilename: "v1-5-pruned-emaonly.safetensors"
+  dynamicModel: false
+  type: ${RUNTIME_TYPE}
+  extraValues:
+    karpenter:
+      nodeTemplate:
+        amiFamily: Bottlerocket
+        dataVolume:
+          volumeSize: 80Gi
+          volumeType: gp3
+          deleteOnTermination: true
+          iops: 4000
+          throughput: 1000
+          snapshotID: ${SNAPSHOT_ID}
+      provisioner:
+        instanceType:
+        - "g5.xlarge"
+        - "g4dn.xlarge"
+        - "g5.2xlarge"
+        - "g4dn.2xlarge"
+        capacityType:
+          onDemand: true
+          spot: true
+      scaling:
+        queueLength: 10 # Target value for queue length. One new instance will be launched when queue launch reaches the value.
+        minReplicaCount: 0 # Minimum number of replicas of SD Runtime.
+        maxReplicaCount: 5 # Maxinum number of replicas of SD Runtime.
+        cooldownPeriod: 300 # The period (in seconds) to wait after the last message before scaling down.

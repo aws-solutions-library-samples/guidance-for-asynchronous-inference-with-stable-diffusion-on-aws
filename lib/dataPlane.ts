@@ -6,49 +6,40 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as efs from 'aws-cdk-lib/aws-efs';
 import SDRuntimeAddon, { SDRuntimeAddOnProps } from './runtime/sdRuntime';
 import { EbsThroughputTunerAddOn, EbsThroughputTunerAddOnProps } from './addons/ebsThroughputTuner'
-import nvidiaDevicePluginAddon from './addons/nvidiaDevicePlugin'
-import { S3SyncEFSAddOnProps, S3SyncEFSAddOn } from './addons/s3SyncEFS'
+import { s3CSIDriverAddOn, s3CSIDriverAddOnProps } from './addons/s3CSIDriver'
 import { SharedComponentAddOn, SharedComponentAddOnProps } from './addons/sharedComponent';
 import { SNSResourceProvider } from './resourceProvider/sns'
+import { s3GWEndpointProvider } from './resourceProvider/s3GWEndpoint'
+import { dcgmExporterAddOn } from './addons/dcgmExporter';
 
 export interface dataPlaneProps {
   stackName: string,
   modelBucketArn: string;
+  APIGW?: {
+    stageName?: string,
+    throttle?: {
+      rateLimit?: number,
+      burstLimit?: number
+    }
+  }
   modelsRuntime: {
     name: string,
     namespace: string,
     type: string,
-    modelFilename: string,
+    modelFilename?: string,
+    dynamicModel?: boolean,
     chartRepository?: string,
     chartVersion?: string,
     extraValues?: {}
-  }[];
-  dynamicModelRuntime: {
-    enabled: boolean,
-    namespace?: string,
-    chartRepository?: string,
-    chartVersion?: string,
-    extraValues?: {}
-  }
+  }[]
 }
 
 export default class DataPlaneStack {
-  cluster: eks.ICluster;
-
   constructor(scope: Construct, id: string,
     dataplaneProps: dataPlaneProps,
     props: cdk.StackProps) {
-
-    const efsParams: blueprints.CreateEfsFileSystemProps = {
-      name: "efs-model-storage",
-      efsProps: {
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-        throughputMode: efs.ThroughputMode.ELASTIC
-      }
-    }
 
     const kedaParams: blueprints.KedaAddOnProps = {
       podSecurityContextFsGroup: 1001,
@@ -74,6 +65,7 @@ export default class DataPlaneStack {
       values: {
         cloudWatchLogs: {
           region: cdk.Aws.REGION,
+          logRetentionDays: 7
         },
         tolerations: [{
           "key": "nvidia.com/gpu",
@@ -111,10 +103,10 @@ export default class DataPlaneStack {
     }
 
     const SharedComponentAddOnParams: SharedComponentAddOnProps = {
-      modelstorageEfs: blueprints.getNamedResource("efs-model-storage"),
       inputSns: blueprints.getNamedResource("inputSNSTopic"),
       outputSns: blueprints.getNamedResource("outputSNSTopic"),
-      outputBucket: blueprints.getNamedResource("outputS3Bucket")
+      outputBucket: blueprints.getNamedResource("outputS3Bucket"),
+      apiGWProps: dataplaneProps.APIGW
     };
 
     const EbsThroughputModifyAddOnParams: EbsThroughputTunerAddOnProps = {
@@ -123,74 +115,62 @@ export default class DataPlaneStack {
       iops: 3000
     };
 
-    const s3SyncEFSAddOnParams: S3SyncEFSAddOnProps = {
-      bucketArn: dataplaneProps.modelBucketArn,
-      efsFilesystem: blueprints.getNamedResource("efs-model-storage") as efs.IFileSystem
-    }
+    const s3CSIDriverAddOnParams: s3CSIDriverAddOnProps = {
+      s3BucketArn: dataplaneProps.modelBucketArn
+    };
 
     const addOns: Array<blueprints.ClusterAddOn> = [
       new blueprints.addons.VpcCniAddOn(),
       new blueprints.addons.CoreDnsAddOn(),
       new blueprints.addons.KubeProxyAddOn(),
       new blueprints.addons.AwsLoadBalancerControllerAddOn(),
-      new blueprints.addons.EbsCsiDriverAddOn(),
-      new blueprints.addons.EfsCsiDriverAddOn(),
       new blueprints.addons.KarpenterAddOn({ interruptionHandling: true }),
       new blueprints.addons.KedaAddOn(kedaParams),
       new blueprints.addons.ContainerInsightsAddOn(containerInsightsParams),
       new blueprints.addons.AwsForFluentBitAddOn(awsForFluentBitParams),
-      new nvidiaDevicePluginAddon({}),
+      new s3CSIDriverAddOn(s3CSIDriverAddOnParams),
       new SharedComponentAddOn(SharedComponentAddOnParams),
       new EbsThroughputTunerAddOn(EbsThroughputModifyAddOnParams),
-      new S3SyncEFSAddOn(s3SyncEFSAddOnParams)
+      new dcgmExporterAddOn({})
     ];
 
-let models: string[] = [];
-
-// Generate SD Runtime Addon for static runtime
+// Generate SD Runtime Addon for runtime
 dataplaneProps.modelsRuntime.forEach((val, idx, array) => {
   const sdRuntimeParams: SDRuntimeAddOnProps = {
     ModelBucketArn: dataplaneProps.modelBucketArn,
     outputSns: blueprints.getNamedResource("outputSNSTopic") as sns.ITopic,
     inputSns: blueprints.getNamedResource("inputSNSTopic") as sns.ITopic,
     outputBucket: blueprints.getNamedResource("outputS3Bucket") as s3.IBucket,
-    sdModelCheckpoint: val.modelFilename,
+    type: val.type.toLowerCase(),
     chartRepository: val.chartRepository,
     chartVersion: val.chartVersion,
     extraValues: val.extraValues,
     targetNamespace: val.namespace,
-    dynamicModel: false,
-    efsFilesystem: blueprints.getNamedResource("efs-model-storage") as efs.IFileSystem
   };
-  addOns.push(new SDRuntimeAddon(sdRuntimeParams, val.name))
-  models.push(val.modelFilename)
-});
 
-// Generate SD Runtime Addon for dynamic runtime
-if (dataplaneProps.dynamicModelRuntime.enabled) {
-  const sdRuntimeParams: SDRuntimeAddOnProps = {
-    ModelBucketArn: dataplaneProps.modelBucketArn,
-    outputSns: blueprints.getNamedResource("outputSNSTopic") as sns.ITopic,
-    inputSns: blueprints.getNamedResource("inputSNSTopic") as sns.ITopic,
-    outputBucket: blueprints.getNamedResource("outputS3Bucket") as s3.IBucket,
-    sdModelCheckpoint: "v1-5-pruned-emaonly.safetensors",
-    dynamicModel: true,
-    targetNamespace: dataplaneProps.dynamicModelRuntime.namespace,
-    chartRepository: dataplaneProps.dynamicModelRuntime.chartRepository,
-    chartVersion: dataplaneProps.dynamicModelRuntime.chartVersion,
-    extraValues: dataplaneProps.dynamicModelRuntime.extraValues,
-    allModels: models,
-    efsFilesystem: blueprints.getNamedResource("efs-model-storage") as efs.IFileSystem
-  };
-  addOns.push(new SDRuntimeAddon(sdRuntimeParams, "dynamicSDRuntime"))
-}
+  //Parameters for SD Web UI
+  if (val.type.toLowerCase() == "sdwebui") {
+    if (val.modelFilename) {
+      sdRuntimeParams.sdModelCheckpoint = val.modelFilename
+    }
+    if (val.dynamicModel == true) {
+      sdRuntimeParams.dynamicModel = true
+    } else {
+      sdRuntimeParams.dynamicModel = false
+    }
+  }
+
+  if (val.type.toLowerCase() == "comfyui") {}
+
+  addOns.push(new SDRuntimeAddon(sdRuntimeParams, val.name))
+});
 
 // Define initial managed node group for cluster components
 const MngProps: blueprints.MngClusterProviderProps = {
   minSize: 2,
   maxSize: 2,
   desiredSize: 2,
-  version: eks.KubernetesVersion.V1_27,
+  version: eks.KubernetesVersion.V1_28,
   instanceTypes: [new ec2.InstanceType('m5.large')],
   amiType: eks.NodegroupAmiType.AL2_X86_64,
   enableSsmPermissions: true,
@@ -202,7 +182,7 @@ const MngProps: blueprints.MngClusterProviderProps = {
 
 // Deploy EKS cluster with all add-ons
 const blueprint = blueprints.EksBlueprint.builder()
-  .version(eks.KubernetesVersion.V1_27)
+  .version(eks.KubernetesVersion.V1_28)
   .addOns(...addOns)
   .resourceProvider(
     blueprints.GlobalResources.Vpc,
@@ -212,7 +192,7 @@ const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("outputS3Bucket", new blueprints.CreateS3BucketProvider({
     id: 'outputS3Bucket'
   }))
-  .resourceProvider("efs-model-storage", new blueprints.CreateEfsFileSystemProvider(efsParams))
+  .resourceProvider("s3GWEndpoint", new s3GWEndpointProvider("s3GWEndpoint"))
   .clusterProvider(new blueprints.MngClusterProvider(MngProps))
   .build(scope, id + 'Stack', props);
 
