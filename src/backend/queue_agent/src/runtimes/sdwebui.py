@@ -43,6 +43,14 @@ def handler(api_base_url: str, task_type: str, task_id: str, payload: dict, dyna
     """Main handler for SD Web UI request"""
     response = {}
     try:
+        try:
+            taskHeader = payload['alwayson_scripts']
+        except KeyError:
+            logger.error(f"Invalid request, skipping")
+            response["success"] = False
+            response["content"] = json.dumps({"error": "Invalid request, skipping"})
+            return response
+
         logger.info(f"Start process {task_type} task with ID: {task_id}")
         match task_type:
             case 'text-to-image':

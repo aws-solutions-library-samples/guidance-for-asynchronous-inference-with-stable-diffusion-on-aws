@@ -2,8 +2,8 @@
 
 set -e
 
-SHORTOPTS="h,n:,R:,d,b:,s:,r:,t:"
-LONGOPTS="help,stack-name:,region:,dry-run,bucket:,snapshot:,runtime-name:,runtime-type:"
+SHORTOPTS="h,n:,R:,d,b:,s:,r:,t:,T"
+LONGOPTS="help,stack-name:,region:,dry-run,bucket:,snapshot:,runtime-name:,runtime-type:,skip-tools"
 ARGS=$(getopt --options $SHORTOPTS --longoptions $LONGOPTS -- "$@" )
 
 eval set -- "$ARGS"
