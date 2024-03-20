@@ -2,8 +2,8 @@
 
 set -e
 
-SHORTOPTS="h,n:,R:,d,b:,s:,r:,t:,T"
-LONGOPTS="help,stack-name:,region:,dry-run,bucket:,snapshot:,runtime-name:,runtime-type:,skip-tools"
+SHORTOPTS="h,n:,R:,d,b:,s:,r:,t:"
+LONGOPTS="help,stack-name:,region:,dry-run,bucket:,snapshot:,runtime-name:,runtime-type:"
 ARGS=$(getopt --options $SHORTOPTS --longoptions $LONGOPTS -- "$@" )
 
 eval set -- "$ARGS"
@@ -23,7 +23,6 @@ do
           printf "  -r, --runtime-name           Runtime name. (Default: sdruntime) \n"
           printf "  -t, --runtime-type           Runtime type. Only 'sdwebui' and 'comfyui' is accepted. (Default: sdwebui) \n"
           exit 0
-          shift
           ;;
         -n|--stack-name)
           STACK_NAME=$2
@@ -64,6 +63,11 @@ do
         --)
           shift
           break
+          ;;
+        ?)
+          shift
+          printf "invalid parameter"
+          exit 1
           ;;
     esac
 done
