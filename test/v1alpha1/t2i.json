@@ -1,0 +1,12 @@
+{
+    "alwayson_scripts": {
+        "task": "text-to-image",
+        "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
+        "id_task": "test-t2i",
+        "save_dir": "outputs"
+    },
+    "prompt": "A dog",
+    "steps": 16,
+    "width": 512,
+    "height": 512
+}
