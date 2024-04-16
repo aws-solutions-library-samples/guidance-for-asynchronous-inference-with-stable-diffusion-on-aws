@@ -1,20 +1,21 @@
-# Guidance for asynchronous inference with Stable Diffusion-Web UI on AWS
+# Guidance for Asynchronous Inference with Stable Diffusion on AWS
 
 Implementing a fast scaling and low cost Stable Diffusion inference solution with serverless and containers on AWS
 
-Stable Diffusion is a popular open source project for generating images using Gen AI. Building a scalable and cost efficient inference solution is a common challenge AWS customers facing. This project shows how to use serverless and container services to build an end-to-end low cost and fast scaling asyncronous image generation architecture. This repo contains the sample code and CDK deployment scripts, helping you to deploy this solution in a few steps.
+[Stable Diffusion](https://aws.amazon.com/what-is/stable-diffusion/) is a popular open source project for generating images using Generative AI. Building a scalable and cost efficient ML Inference solution is a common challenge that many AWS customers are facing. 
+This project shows how to use serverless architcture and container services to build an end-to-end low cost, rapidly scaling asyncronous image generation architecture. This repo contains the sample code and CDK deployment scripts that will help you to deploy this solution in a few steps.
 
 ## Features
 
-- Asyncronous API and Serverless Event-Driven Architecture
-- Image Generation with Stable Diffusion Web UI on Amazon EKS
-- Automatic queue length based scaling with KEDA
-- Automatic provisioning ec2 instances with Karpenter
-- Scaling up new inference nodes within 2 minutes
-- Saving up to 70% with GPU spot instances
+- Asyncronous API and [Serverless Event-Driven Architecture](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/event-driven-architectures.html)
+- Image Generation with [Stable Diffusion Web UI](https://stablediffusionweb.com/WebUI) running on [Amazon EKS](https://aws.amazon.com/eks) 
+- Automatic [Amazon SQS](https://aws.amazon.com/sqs/) queue length based scaling with [KEDA](https://keda.sh/)
+- Automatic provisioning of EC2 instances for Amazon EKS compute Nodes with [Karpenter](https://karpenter.sh/)
+- Scaling up new Amazon EKS nodes within 2 minutes  to run Inference tasks
+- Saving up to 70% with [AWS GPU](https://aws.amazon.com/ec2/instance-types/g5/) spot EC2 instances
 
 ## Architecture diagram
-<!-- {% include image.html file="async_img_sd_images/IG_Figure1.png" alt="architecture" %} -->
+
 <!-- img src="./low-latency-high-bandwidth-updated-architecture.jpg" width="90%" --> 
 <div align="center">
 <img src="docs/en/images/stable_diffusion_architecture_diagram.jpg" width="90%">
@@ -63,7 +64,7 @@ Region considerations, and template dependencies.
 ### Cost 
 
 We recommend creating a [budget](https://alpha-docs-aws.amazon.com/awsaccountbilling/latest/aboutv2/budgets-create.html) through [AWS
-Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
+Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. In addition, other running costs of the solution include storage costs, on-demand costs for serverless services, and network data transfer costs. For detailed pricing formulas, please refer to [AWS Pricing Calculator](https://docs.aws.amazon.com/pricing-calculator/latest/userguide/getting-started.html).
 
 ### Sample cost table
 
@@ -88,7 +89,6 @@ controls the components including the host operating system, the
 virtualization layer, and the physical security of the facilities in
 which the services operate. For more information about AWS security,
 visit [AWS Cloud Security](http://aws.amazon.com/security/).
-
 
 ## Service Quotas
 
