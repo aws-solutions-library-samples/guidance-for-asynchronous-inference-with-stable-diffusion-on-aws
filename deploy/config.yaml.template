@@ -1,3 +1,6 @@
+# Auto generated config file
+# Run cdk deploy to deploy SD on EKS stack
+
 stackName: ${STACK_NAME}
 modelBucketArn: arn:aws:s3:::${MODEL_BUCKET}
 APIGW:
@@ -16,14 +19,11 @@ modelsRuntime:
       nodeTemplate:
         amiFamily: Bottlerocket
         dataVolume:
-          volumeSize: 80Gi
-          volumeType: gp3
-          deleteOnTermination: true
-          iops: 4000
-          throughput: 1000
           snapshotID: ${SNAPSHOT_ID}
       provisioner:
         instanceType:
+        - "g6.2xlarge"
+        - "g6.xlarge"
         - "g5.xlarge"
         - "g4dn.xlarge"
         - "g5.2xlarge"
@@ -31,8 +31,9 @@ modelsRuntime:
         capacityType:
           onDemand: true
           spot: true
+    runtime:
       scaling:
-        queueLength: 10 # Target value for queue length. One new instance will be launched when queue launch reaches the value.
-        minReplicaCount: 0 # Minimum number of replicas of SD Runtime.
-        maxReplicaCount: 5 # Maxinum number of replicas of SD Runtime.
-        cooldownPeriod: 300 # The period (in seconds) to wait after the last message before scaling down.
+        queueLength: 10
+        minReplicaCount: 0
+        maxReplicaCount: 5
+        cooldownPeriod: 300
