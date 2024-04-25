@@ -1,5 +1,5 @@
 stackName: sdoneks
-modelBucketArn: arn:aws:s3:::dummy-bucket
+modelBucketArn: arn:aws:s3:::sdoneks-model-bucket-6dfc
 APIGW:
   stageName: dev
   throttle:
@@ -16,23 +16,16 @@ modelsRuntime:
       nodeTemplate:
         amiFamily: Bottlerocket
         dataVolume:
-          volumeSize: 80Gi
-          volumeType: gp3
-          deleteOnTermination: true
-          iops: 4000
-          throughput: 1000
-#           snapshotID:
+          snapshotID: snap-02d2236b172fb80eb
       provisioner:
         instanceType:
-        - g5.xlarge
-        - g4dn.xlarge
-        - g5.2xlarge
-        - g4dn.2xlarge
+        - g6.xlarge
+        - g6.2xlarge
         capacityType:
           onDemand: true
           spot: true
+    runtime:
       scaling:
-        queueLength: 10 # Target value for queue length. One new instance will be launched when queue launch reaches the value.
-        minReplicaCount: 0 # Minimum number of replicas of SD Runtime.
-        maxReplicaCount: 5 # Maxinum number of replicas of SD Runtime.
-        cooldownPeriod: 300 # The period (in seconds) to wait after the last message before scaling down.
+        queueLength: 10
+        minReplicaCount: 0
+        cooldownPeriod: 300
