@@ -142,7 +142,7 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 
 **在亚马逊云科技中国区域部署**
 
-该解决方案支持在亚马逊云科技中国区域部署，但步骤与正常部署流程不同。请参见[在亚马逊云科技中国区域部署](./aws-cn.md)
+该解决方案支持在亚马逊云科技中国区域部署，但步骤与正常部署流程不同。请参见[在亚马逊云科技中国区域部署](#在亚马逊云科技中国区域部署)
 
 ## IAM 权限
 
@@ -347,9 +347,9 @@ cd deploy
 您也可以不适用脚本，使用以下步骤手动在 AWS 上部署此解决方案。
 
 1. [创建 Amazon S3 模型存储桶](#模型存储)，并将所需要的模型存储到桶中
-2. *（可选）* [构建容器镜像](./image-building.md)
-3. *（可选）* [将容器镜像存储到EBS缓存中以加速启动](./ebs-snapshot.md)
-4. [部署并启动解决方案堆栈](./deploy.md)
+2. *（可选）* [构建容器镜像](#镜像构建)
+3. *（可选）* [将容器镜像存储到EBS缓存中以加速启动](#镜像缓存构建)
+4. [部署并启动解决方案堆栈](#手动部署)
 
 #### 模型存储
 
@@ -627,7 +627,7 @@ modelsRuntime:
 
 3. 设置自定义镜像（可选）
 
-如您[自行构建了镜像和/或Helm Chart](./image-building.md)，则需要在对应的运行时中指定镜像，配置如下：
+如您[自行构建了镜像和/或Helm Chart](#镜像构建)，则需要在对应的运行时中指定镜像，配置如下：
 
 ```yaml
 modelsRuntime:
@@ -652,7 +652,7 @@ modelsRuntime:
 
 4. 设置基于 EBS 快照的镜像缓存（可选）
 
-如您构建了[基于EBS快照的镜像缓存](./ebs-snapshot.md)，则需要在对应的运行时中指定快照ID，配置如下：
+如您构建了[基于EBS快照的镜像缓存](#镜像缓存构建)，则需要在对应的运行时中指定快照ID，配置如下：
 
 ```yaml
 modelsRuntime:
@@ -724,7 +724,7 @@ sdoneksStack.ConfigCommand = aws eks update-kubeconfig --name sdoneksStack --reg
 
 由于默认使用的容器镜像存储在ECR Public，您在拉取镜像或制作镜像缓存时可能面临速度缓慢，或连接中途断开等现象。我们建议您自行构建镜像，或将现有镜像转移到您的ECR镜像仓库中。
 
-如需自行构建镜像，请参考[镜像构建](./image-building.md)文档。
+如需自行构建镜像，请参考[镜像构建](#镜像构建)文档。
 
 如需将预构建镜像转移到中国区的ECR，您可以在一台已安装Docker，并有ECR权限的实例上，运行如下命令：
 
@@ -748,15 +748,15 @@ docker push 123456789012.dkr.ecr.cn-northwest.amazonaws.com.cn/sd-on-eks/comfyui
 docker push 123456789012.dkr.ecr.cn-northwest.amazonaws.com.cn/sd-on-eks/queue-agent:latest
 ```
 
-我们建议您按照[镜像构建](./image-building.md#构建并推送helm-chart)文档提供的方式，将Helm Chart放置在ECR或HTTP服务器中。
+我们建议您按照[镜像构建](#镜像构建)文档提供的方式，将Helm Chart放置在ECR或HTTP服务器中。
 
 **下载模型并存储至S3桶**
 
-由于在中国大陆无法顺畅访问Hugging Face，请在其他镜像网站下载模型后，按照[模型存储](./models.md)文档提供的方式，上传至S3存储桶中。
+由于在中国大陆无法顺畅访问Hugging Face，请在其他镜像网站下载模型后，按照[模型存储](#模型存储)文档提供的方式，上传至S3存储桶中。
 
 **制作EBS磁盘快照**
 
-请按照[镜像缓存构建](./ebs-snapshot.md)文档提供的方式，创建EBS磁盘快照以加速镜像加载。
+请按照[镜像缓存构建](#镜像缓存构建)文档提供的方式，创建EBS磁盘快照以加速镜像加载。
 
 **生成并修改配置文件**
 
@@ -874,7 +874,7 @@ https://abcdefghij.execute-api.ap-southeast-1.amazonaws.com/prod/v1alpha2
 
 根据运行时类型不同，每种运行时只接受特定类型的请求：
 
-* 对于SD Web UI运行时，只接受[文生图](./text-to-image.md)和[图生图](./image-to-image.md)请求。
+* 对于SD Web UI运行时，只接受[文生图](#文生图-sd-web-ui)，[图生图](#图生图-sd-web-ui)，和[单图像超分辨率扩大](#单图像超分辨率放大-sd-web-ui)请求。
 * 对于ComfyUI运行时，只接受[Pipeline](./pipeline.md)请求。
 
 具体请求格式请参见各类型请求的详细文档。
