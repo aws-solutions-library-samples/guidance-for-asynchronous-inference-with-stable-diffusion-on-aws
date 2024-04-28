@@ -245,11 +245,11 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 | Amazon EC2 | m5.large 实例，按需实例每小时费用  | 1440 | \$ 0.0960 | \$ 138.24 |
 
 \* 按每个请求耗时 1.5 秒计算，单价参照 2024 年 1 月 29 日 至 2024 年 4 月 28 日 美国西部（俄勒冈）区域所有可用区Spot实例价格之平均值
-
+{: .fs-1 }
 \*\* 按请求平均 16 KB 计算
-
+{: .fs-1 }
 \*\*\* 按图像平均 150 KB，存储 1 个月计算
-
+{: .fs-1 }
 请注意该估算仅为参考费用。实际的费用可能会根据您所使用的模型，任务参数，Spot实例当前定价等有所不同。
 
 ## 安全
@@ -976,7 +976,7 @@ Stable Diffusion的最基本用法，输入Prompt，可以生成对应图像。
 
 v1alpha2
 {: .label .label-green }
-```json
+```json-doc
 {
   "task": {
     "metadata": {
@@ -999,7 +999,7 @@ v1alpha2
 
 v1alpha1
 {: .label .label-blue }
-```json
+```json-doc
 {
     "alwayson_scripts": {
         "task": "text-to-image", // 必要，任务类型
@@ -1019,7 +1019,7 @@ v1alpha1
 
 v1alpha2
 {: .label .label-green }
-```json
+```json-doc
 {
   "id_task": "test-t2i",
   "runtime": "sdruntime",
@@ -1029,7 +1029,7 @@ v1alpha2
 
 v1alpha1
 {: .label .label-blue }
-```json
+```json-doc
 {
   "id_task": "test-t2i",
   "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
@@ -1041,7 +1041,7 @@ v1alpha1
 
 如对应运行时设置了 `dynamicModel: true`，则需要在请求的`alwayson_scripts` 中加入如下内容：
 
-```json
+```json-doc
         "content": {
           "alwayson_scripts": {
             "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors" //此处放入模型名称
@@ -1071,7 +1071,7 @@ Stable Diffusion的基本用法，输入Prompt和参考图像，可以生成与�
 
 v1alpha2
 {: .label .label-green }
-```json
+```json-doc
 {
   "task": {
     "metadata": {
@@ -1095,7 +1095,7 @@ v1alpha2
 
 v1alpha1
 {: .label .label-blue }
-```json
+```json-doc
 {
     "alwayson_scripts": {
         "task": "image-to-image", // 必要，任务类型
@@ -1115,7 +1115,7 @@ v1alpha1
 
 v1alpha2
 {: .label .label-green }
-```json
+```json-doc
 {
   "id_task": "test-i2i",
   "runtime": "sdruntime",
@@ -1125,7 +1125,7 @@ v1alpha2
 
 v1alpha1
 {: .label .label-blue }
-```json
+```json-doc
 {
   "id_task": "test-i2i",
   "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
@@ -1137,7 +1137,7 @@ v1alpha1
 
 如对应运行时设置了 `dynamicModel: true`，则需要在请求的`alwayson_scripts` 中加入如下内容：
 
-```json
+```json-doc
         "content": {
           "alwayson_scripts": {
             "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors" //此处放入模型名称
@@ -1166,7 +1166,7 @@ v1alpha1
 
 v1alpha2
 {: .label .label-green }
-```json
+```json-doc
 {
   "task": {
     "metadata": {
@@ -1201,7 +1201,7 @@ v1alpha2
 
 v1alpha2
 {: .label .label-green }
-```json
+```json-doc
 {
   "id_task": "test-extra",
   "runtime": "sdruntime",
@@ -1254,7 +1254,7 @@ ComfyUI提供工作流编排功能，可以在界面上使用多种节点编排�
 
 v1alpha2
 {: .label .label-green }
-```json
+```json-doc
 {
   "task": {
     "metadata": {
@@ -1275,7 +1275,7 @@ v1alpha2
 
 v1alpha2
 {: .label .label-green }
-```json
+```json-doc
 {
   "id_task": "test-pipeline",
   "runtime": "sdruntime",
@@ -1339,7 +1339,7 @@ AWS CLI
 
 解决方案会通过以下格式向SNS发送任务完成通知，此通知与请求时所使用的的API版本无关：
 
-```json
+```json-doc
 {
     "id": "task_id", // 任务ID
     "result": true, // true为成功完成，false为未成功完成
