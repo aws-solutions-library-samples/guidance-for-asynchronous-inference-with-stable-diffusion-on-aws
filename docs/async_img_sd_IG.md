@@ -116,7 +116,7 @@ This section provides a reference implementation architecture diagram for the co
 ## Cost
 
 You are responsible for the cost of the AWS services used while running this Guidance. As of April 2024, the cost for running this
-Guidance with the default settings in the US West (Oregon) is approximately for one month and generating one million images would cost approximately **$436.72 per month** (excluding free tiers).
+Guidance with the default settings in the US West (Oregon) is approximately for one month and generating one million images would cost approximately **$436.72** (excluding free tiers).
 
 We recommend creating a [budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-create.html){:target="_blank"} through [AWS Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/){:target="_blank"} to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
 
@@ -133,7 +133,7 @@ The main services and their pricing for usage related to the number of images ar
 | Amazon SQS | Per 1M requests  | 2 | \$ 0.40 | \$ 0.80 |
 | Amazon S3 | Per 1K PUT requests  | 2,000 | \$ 0.005 | \$ 10.00 |
 | Amazon S3 | Per GB per month  | 143.05\*** | \$ 0.023 | \$ 3.29 |
-| **Total, 1M images** | | | | **\$226.18** |
+| **Total, 1M images** | &nbsp; | &nbsp; | &nbsp; | **\$226.18** |
 
 The fixed costs unrelated to the number of images, with the main services and their pricing listed below (per month):
 
@@ -141,7 +141,7 @@ The fixed costs unrelated to the number of images, with the main services and th
 |-----------|------------|------------|------------|------------|
 | Amazon EKS | Cluster  | 1 | \$ 72.00 | \$ 72.00 |
 | Amazon EC2 | m5.large instance, On-Demand instance per hour  | 1440 | \$ 0.0960 | \$ 138.24 |
-| **Total, month** | | | | **\$210.24** |
+| **Total, month** | &nbsp; | &nbsp; | &nbsp; | **\$210.24** |
 
 - \* Calculated based on an average request duration of 1.5 seconds and the average Spot instance pricing across all Availability Zones in the US West (Oregon) Region from January 29, 2024, to April 28, 2024.
 - \*\* Calculated based on an average request size of 16 KB

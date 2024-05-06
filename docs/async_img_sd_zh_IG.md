@@ -33,10 +33,10 @@ layout: page
 
 Stable Diffusion作为一种强大的文本到图像生成模型，其应用场景非常广泛,主要包括:
 
-* 艺术创作:Stable Diffusion可以根据文本描述自动生成高质量的艺术作品,如绘画、插画、概念艺术等,为艺术家提供创作灵感和辅助；
-* 游戏设计:利用Stable Diffusion可以快速创建游戏资产,如角色、场景、道具等,加速原型设计和游戏内容的迭代；
-* 图像编辑:Stable Diffusion具有图像修复、增强、编辑等功能,可用于图像去噪、超分辨率重建、风格迁移等任务；
-* 电商运营:利用Stable Diffusion生成商品描述图等美术资产,可以降低电商平台的运营成本,提高商品图片生产效率。
+* 艺术创作: Stable Diffusion可以根据文本描述自动生成高质量的艺术作品,如绘画、插画、概念艺术等,为艺术家提供创作灵感和辅助；
+* 游戏设计: 利用Stable Diffusion可以快速创建游戏资产,如角色、场景、道具等,加速原型设计和游戏内容的迭代；
+* 图像编辑: Stable Diffusion具有图像修复、增强、编辑等功能,可用于图像去噪、超分辨率重建、风格迁移等任务；
+* 电商运营: 利用Stable Diffusion生成商品描述图等美术资产,可以降低电商平台的运营成本,提高商品图片生产效率。
 
 本项目提供了在Amazon EKS上大规模运行Stable Diffusion推理任务的架构和指导。本项目可以执行下列任务：
 
@@ -71,34 +71,33 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 对于每个运行时：
 
 * 部署时，每个运行时有独立的 Amazon SQS 队列以接收请求
-* Queue Agent会从 Amazon SQS 队列里接收任务，并发送给Stable Diffusion运行时生成图像
-* 生成的图片由Queue Agent存储至 Amazon S3存储桶中，并将完成通知投送至 Amazon SNS 主题
-* 当 Amazon SQS 队列中积压过多消息时，KEDA会根据队列内消息数量扩充运行时的副本数，同时Karpenter会启动新的GPU实例以承载新的副本。
+* Queue Agent 会从 Amazon SQS 队列里接收任务，并发送给Stable Diffusion运行时生成图像
+* 生成的图片由 Queue Agent 存储至 Amazon S3存储桶中，并将完成通知投送至 Amazon SNS 主题
+* 当 Amazon SQS 队列中积压过多消息时，KEDA会根据队列内消息数量扩充运行时的副本数，同时 Karpenter 会启动新的GPU实例以承载新的副本。
 * 当 Amazon SQS 队列中不再积压消息时，KEDA会缩减副本数，且Karpenter会关闭不需要的GPU实例以节省成本。
 
 ### 架构图
 本节提供了本指南所部署组件的参考架构图。
 
-<!-- {% include image.html file="async_img_sd_images/IG_Figure1.png" alt="architecture" %} -->
-{% include image.html file="async_img_sd_images/stable_diffusion_architecture_diagram.jpg" alt="architecture" %}
+{% include image.html file="async_img_sd_zh_images/stable_diffusion_architecture_diagram.jpg" alt="architecture" %}
 
 *Figure 1: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS architecture*
 
 ### 工作流
 
 1. 用户将请求（模型，Prompt等）发送业务应用，业务应用将请求发送至 [Amazon API Gateway](https://aws.amazon.com/api-gateway/){:target="_blank"} 提供的API端点。请求通过[AWS Lambda](https://aws.amazon.com/lambda/){:target="_blank"}进行校验，并投送至  [Amazon Simple Notification Service](https://aws.amazon.com/sns/){:target="_blank"} (Amazon SNS) 主题，并立即获得返回。
-2. Amazon SNS根据请求中的运行时名称，将请求投送至对应运行时的 [Amazon Simple Queue Service](https://aws.amazon.com/sqs/){:target="_blank"} (Amazon SQS) 队列。
+2. Amazon SNS 根据请求中的运行时名称，将请求投送至对应运行时的 [Amazon Simple Queue Service](https://aws.amazon.com/sqs/){:target="_blank"} (Amazon SQS) 队列。
 3. 在 [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/){:target="_blank"} (Amazon EKS) 集群中，已经部署的Kubernetes Event Driven Auto-Scaler (KEDA) 会根据队列内消息数量扩充运行时的副本数。
-4. 在Amazon EKS 集群中，Karpenter会启动新的[Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/){:target="_blank"} 实例以承载新的副本，这些实例运行[Bottlerocket OS](https://aws.amazon.com/bottlerocket/){:target="_blank"}操作系统，采用[Spot](https://aws.amazon.com/ec2/spot)/On-demand混合购买方式，且通过EBS快照预载Stable Diffusion运行时的容器镜像。
-5. Stable Diffusion 运行时启动，或模型切换时会通过[Mountpoint for Amazon S3 CSI Driver](https://github.com/awslabs/mountpoint-s3-csi-driver){:target="_blank"}，直接从[Amazon Simple Storage Service](https://aws.amazon.com/efs/){:target="_blank"} (Amazon S3)存储桶中加载模型
-6. Queue Agent会从 Amazon SQS 队列里接收任务，并发送给Stable Diffusion运行时生成图像
-7. 生成的图片由Queue Agent存储至 Amazon S3存储桶中。
+4. 在Amazon EKS 集群中，Karpenter 会启动新的[Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/){:target="_blank"} 实例以承载新的副本，这些实例运行 [Bottlerocket OS](https://aws.amazon.com/bottlerocket/){:target="_blank"} 操作系统，采用[Spot](https://aws.amazon.com/ec2/spot)/On-demand混合购买方式，且通过EBS快照预载Stable Diffusion运行时的容器镜像。
+5. Stable Diffusion 运行时启动，或模型切换时会通过 [Mountpoint for Amazon S3 CSI Driver](https://github.com/awslabs/mountpoint-s3-csi-driver){:target="_blank"} ，直接从 [Amazon Simple Storage Service](https://aws.amazon.com/efs/){:target="_blank"} (Amazon S3)存储桶中加载模型
+6. Queue Agent 会从 Amazon SQS 队列里接收任务，并发送给 Stable Diffusion 运行时生成图像
+7. 生成的图片由 Queue Agent 存储至 Amazon S3 存储桶中。
 8. 完成通知投送至 Amazon SNS 主题，SNS可将响应投送至SQS或其他目标中
 
 
 ### 使用的AWS服务
 
-| **AWS Service** | **Description** |
+| **AWS 服务** | **描述** |
 | ---- | ----|
 | [Amazon Simple Storage Service - S3](http://aws.amazon.com/s3/){:target="_blank"}         | 用于存储模型和生成的图像 |
 | [Amazon Virtual Private Cloud - VPC](https://aws.amazon.com/vpc/){:target="_blank"}| 提供基础网络服务 |
@@ -107,27 +106,14 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 | [AWS Lambda](https://aws.amazon.com/lambda){:target="_blank"}| 用于进行请求验证和路由 |
 | [Amazon Simple Queue Service - SQS](https://aws.amazon.com/sqs){:target="_blank"} | 用于存放待处理的任务 |
 | [Amazon Simple Notification Service - SNS](https://aws.amazon.com/sns){:target="_blank"} | 用于将任务路由到不同的SQS队列，以及提供处理完成后通知和回调 |
-| [Amazon Elastic Kubernetes Service - EKS](https://aws.amazon.com/eks){:target="_blank"} | Used for managing and running the Stable Diffusion runtimes. |
-| [Amazon Elastic Compute Cloud - EC2](https://aws.amazon.com/ec2){:target="_blank"}  | Used for running the Stable Diffusion runtimes. |
-| [Amazon CloudWatch](https://aws.amazon.com/cloudwatch){:target="_blank"}  | Used for monitoring system health, providing metrics, logs, and traces. |
-| [AWS CDK](https://aws.amazon.com/cdk){:target="_blank"}   | Used for deploying and updating this guidance. |
-
-| AWS 服务 | 描述  |
-| ---- | ----|
-| [Amazon S3](http://aws.amazon.com/s3/)         | 用于存储模型和生成的图像。|
-| [Amazon ECR](http://aws.amazon.com/ecr/)         | 用于存储运行时所需的容器镜像。|
-| [Amazon API Gateway](http://aws.amazon.com/api-gateway/)         | 用于提供对外访问的API接口。|
-| [AWS Lambda](https://aws.amazon.com/lambda)    | 用于进行请求验证和路由。|
-| [Amazon SQS](https://aws.amazon.com/sqs)       | 用于存放待处理的任务。|
-| [Amazon SNS](https://aws.amazon.com/sns)       | 用于将任务路由到不同的SQS队列，以及提供处理完成后通知和回调。|
-| [Amazon EKS](https://aws.amazon.com/eks)       | 用于管理和运行 Stable Diffusion 运行时。|
-| [Amazon EC2](https://aws.amazon.com/ec2)       | 用于运行 Stable Diffusion 运行时。|
-| [Amazon CloudWatch](https://aws.amazon.com/cloudwatch)       | 用于监控系统的运行状况，提供数值监控，日志和跟踪。|
-| [AWS CDK](https://aws.amazon.com/cdk)       | 用于部署和更新该解决方案。|
+| [Amazon Elastic Kubernetes Service - EKS](https://aws.amazon.com/eks){:target="_blank"} | 用于管理和运行 Stable Diffusion 运行时 |
+| [Amazon Elastic Compute Cloud - EC2](https://aws.amazon.com/ec2){:target="_blank"}  | 用于运行 Stable Diffusion 运行时 |
+| [Amazon CloudWatch](https://aws.amazon.com/cloudwatch){:target="_blank"}  | 用于监控系统的运行状况，提供数值监控，日志和跟踪 |
+| [AWS CDK](https://aws.amazon.com/cdk){:target="_blank"}   | 用于部署和更新该解决方案 |
 
 ## 费用预估
 
-您需要为使用该解决方案中包含的AWS服务付费。按2024年4月价格计算，在美国西部（俄勒冈）区域运行该解决方案一个月，且生成一百万张图片的价格约为（不含免费额度） 436.72 美元。
+您需要为使用该解决方案中包含的AWS服务付费。按2024年4月价格计算，在美国西部（俄勒冈）区域运行该解决方案一个月，且生成一百万张图片的价格约为（不含免费额度）**436.72** 美元。
 
 我们建议您在[AWS Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/){:target="_blank"} 上[创建预算](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-create.html){:target="_blank"} 以帮助管理成本。价格有可能改变。请参考对应的AWS服务定价页面以获取具体的价格。
 
@@ -144,7 +130,7 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 | Amazon SQS | 每 1 百万个请求  | 2 | \$ 0.40 | \$ 0.80 |
 | Amazon S3 | 每 1 千个 PUT 请求  | 2,000 | \$ 0.005 | \$ 10.00 |
 | Amazon S3 | 每 GB 每月  | 143.05*** | \$ 0.023 | \$ 3.29
-| **小计，每 1 百万张图片** | | | | **\$ 226.18** |
+| **小计，每 1 百万张图片** | &nbsp; | &nbsp; | &nbsp; | **\$ 226.18** |
 
 与图像数量无关的固定费用，主要服务价格列表如下（按月计）：
 
@@ -152,7 +138,7 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 |-----------|------------|------------|------------|------------|
 | Amazon EKS | 集群  | 1 | \$ 72.00 | \$ 72.00 |
 | Amazon EC2 | m5.large 实例，按需实例每小时费用  | 1440 | \$ 0.0960 | \$ 138.24 |
-| **小计，每月** | | | | **\$ 210.24** |
+| **小计，每月** | &nbsp; | &nbsp; | &nbsp; | **\$ 210.24** |
 
 - \* 按每个请求耗时 1.5 秒计算，单价参照 2024 年 1 月 29 日 至 2024 年 4 月 28 日 美国西部（俄勒冈）区域所有可用区Spot实例价格之平均值
 - \*\* 按请求平均 16 KB 计算
@@ -194,7 +180,7 @@ AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问
 ## 服务配额
 
 {: .note }
-要在不切换页面的情况下查看文档中所有 AWS 服务的服务配额，请以PDF格式查看[服务端点和配额]((https://docs.aws.amazon.com/general/latest/gr/aws-general.pdf#aws-service-information){:target="_blank"} 页面中的信息。
+要在不切换页面的情况下查看文档中所有 AWS 服务的服务配额，请以PDF格式查看[服务端点和配额](https://docs.aws.amazon.com/general/latest/gr/aws-general.pdf#aws-service-information){:target="_blank"} 页面中的信息。
 
 每个AWS区域的每个AWS账户都有关于可以创建的资源数量的配额，您可以在AWS控制台中使用 [Service Quota](https://console.aws.amazon.com/servicequotas/home/){:target="_blank"} 工具了解服务配额。如该服务配额可提升，您可以通过该工具并自助式开立工单提升服务配额。
 
