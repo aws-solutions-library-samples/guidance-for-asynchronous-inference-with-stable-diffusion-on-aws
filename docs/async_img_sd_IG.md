@@ -1394,14 +1394,14 @@ npx cdk destroy
 
 Deleting the guidance should approximately 20-30 minutes.
 
-### Related resources
+## Related resources
 
 * [Stable Diffusion web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui){:target="_blank"}
 * [Bottlerocket OS](https://aws.amazon.com/bottlerocket/){:target="_blank"}
 * [KEDA pod autoscaler](https://keda.sh/){:target="_blank"}
 * [Karpenter autoscaler](https://karpenter.sh/){:target="_blank"}
 
-### Contributors
+## Contributors
 
 -   Bingjiao Yu, Soltions Architect Container Specialist
 -   Daniel Zilberman, Sr. Solutions Architect Tech Solutions team

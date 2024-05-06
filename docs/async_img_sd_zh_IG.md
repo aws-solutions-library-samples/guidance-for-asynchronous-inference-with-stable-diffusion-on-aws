@@ -280,11 +280,6 @@ AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问
 
 - 在当前版本，该解决方案只能在新建的EKS集群上部署，且版本固定为`1.29`。我们会随着Amazon EKS版本发布更新集群版本。
 
-
-## 部署解决方案
-
-在部署解决方案之前，建议您先查看本指南中有关架构图和区域支持等信息，然后按照下面的说明配置解决方案并将其部署到您的账户中。
-
 ### 获取源代码
 
 运行以下命令以获取源代码和部署脚本：
@@ -1394,7 +1389,7 @@ npx cdk destroy
 
 删除解决方案大约需要 20-30 分钟。
 
-### 相关链接
+## 相关链接
 
 * [Stable Diffusion web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui){:target="_blank"}
 * [Bottlerocket OS](https://aws.amazon.com/bottlerocket/){:target="_blank"}
@@ -1402,7 +1397,7 @@ npx cdk destroy
 * [Karpenter autoscaler](https://karpenter.sh/){:target="_blank"}
 
 
-### 贡献者
+## 贡献者
 
 -   Bingjiao Yu, Container Specialist SA
 -   Harold Sun, Sr. GCR Serverless SSA
