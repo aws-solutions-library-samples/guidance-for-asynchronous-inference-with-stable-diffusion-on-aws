@@ -18,7 +18,7 @@ This project shows how to use serverless architcture and container services to b
 
 <!-- img src="./low-latency-high-bandwidth-updated-architecture.jpg" width="90%" --> 
 <div align="center">
-<img src="docs/en/images/stable_diffusion_architecture_diagram.jpg" width="90%">
+<img src="docs/stable_diffusion_architecture_diagram.jpg" width="80%">
 <br/>
 Figure 1: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS architecture
 </div>
