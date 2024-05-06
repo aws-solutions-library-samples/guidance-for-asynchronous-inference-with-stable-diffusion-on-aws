@@ -14,7 +14,7 @@ layout: page
 
 在 AWS 上使用无服务器和容器解决方案，实施快速扩展和低成本的Stable Diffusion图像生成解决方案
 
-Stable Diffusion 是一个使用生成式AI技术生成图像的流行开源项目。构建可扩展、低成本的推理解决方案是 AWS 客户面临的共同挑战。本项目展示了如何使用无服务器和容器服务构建端到端低成本、快速扩展的异步图像生成架构。该代码仓库包含示例代码和实施指南（即本文档）
+[Stable Diffusion](https://aws.amazon.com/what-is/stable-diffusion/){:target="_blank"} 是一个使用生成式AI技术生成图像的流行开源项目。构建可扩展、低成本的推理解决方案是 AWS 客户面临的共同挑战。本项目展示了如何使用无服务器和容器服务构建端到端低成本、快速扩展的异步图像生成架构。该代码仓库包含示例代码和实施指南（即本文档）
 
 
 ### 功能特性
@@ -22,8 +22,8 @@ Stable Diffusion 是一个使用生成式AI技术生成图像的流行开源项�
 该解决方案具有以下特性：
 
 - 基于事件驱动架构
-- 利用 KEDA 实现基于队列长度的自动扩展
-- 利用 Karpenter 自动配置 EC2 实例
+- 利用 [KEDA](https://keda.sh/){:target="_blank"} 实现基于队列长度的自动扩展
+- 利用 [Karpenter](https://karpenter.sh/){:target="_blank"} 自动配置 EC2 实例
 - 在 2 分钟内扩展新的推理节点
 - 使用 GPU Spot 实例可节省高达 70% 的成本
 - 支持多种社区Stable Diffusion运行时
@@ -52,9 +52,9 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 
 该解决方案包含3个主要组件：
 
-* 基于无服务器架构的任务调度和分发
-* 基于Amazon EKS和Amazon EC2加速计算实例的Stable Diffusion运行时
-* 管理和维护组件
+1. 基于无服务器架构的任务调度和分发
+2. 基于Amazon EKS和Amazon EC2加速计算实例的Stable Diffusion运行时
+3. 管理和维护组件
 
 ### 任务调度和分发
 
@@ -76,34 +76,41 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 * 当 Amazon SQS 队列中积压过多消息时，KEDA会根据队列内消息数量扩充运行时的副本数，同时Karpenter会启动新的GPU实例以承载新的副本。
 * 当 Amazon SQS 队列中不再积压消息时，KEDA会缩减副本数，且Karpenter会关闭不需要的GPU实例以节省成本。
 
-
-### 管理和维护
-
-该解决方案提供完整的可观测性和管理组件：
-
-* 基于CloudWatch的数值监控和日志
-* 基于AWS X-Ray的全链路跟踪
-* 基于AWS CDK的基础设施即代码部署方式
-
 ### 架构图
 本节提供了本指南所部署组件的参考架构图。
+
+<!-- {% include image.html file="async_img_sd_images/IG_Figure1.png" alt="architecture" %} -->
+{% include image.html file="async_img_sd_images/stable_diffusion_architecture_diagram.jpg" alt="architecture" %}
 
 *Figure 1: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS architecture*
 
 ### 工作流
 
-1. 用户将请求（模型，Prompt等）发送业务应用，业务应用将请求发送至 Amazon API Gateway 提供的API端点
-2. 请求通过Amazon Lambda进行校验，并投送至 Amazon SNS 主题
-3. Amazon SNS根据请求中的运行时名称，基于请求过滤机制，将请求投送至对应运行时的SQS队列
-4. 在EKS集群中，KEDA会根据队列内消息数量扩充运行时的副本数
-5. Karpenter会启动新的GPU实例以承载新的副本，这些实例运行BottleRocket操作系统，采用Spot/On-demand混合购买方式，且通过EBS快照预载Stable Diffusion运行时的容器镜像
-6. Stable Diffusion 运行时启动时会通过Mountpoint for Amazon S3 CSI Driver，直接从S3存储桶中加载模型
-7. Queue Agent会从 Amazon SQS 队列里接收任务，并发送给Stable Diffusion运行时生成图像
-8. 生成的图片由Queue Agent存储至 Amazon S3存储桶中，并将完成通知投送至 Amazon SNS 主题，SNS可将响应投送至SQS或其他目标中
-9. 该解决方案提供完整的可观测性和管理组件，包含基于CloudWatch和ADOT的数值监控和日志，基于AWS X-Ray的全链路跟踪
-10. 该解决方案通过基于AWS CDK的基础设施即代码部署方式进行部署和配置，通过IAM和API Key提供安全和访问控制
+1. 用户将请求（模型，Prompt等）发送业务应用，业务应用将请求发送至 [Amazon API Gateway](https://aws.amazon.com/api-gateway/){:target="_blank"} 提供的API端点。请求通过[AWS Lambda](https://aws.amazon.com/lambda/){:target="_blank"}进行校验，并投送至  [Amazon Simple Notification Service](https://aws.amazon.com/sns/){:target="_blank"} (Amazon SNS) 主题，并立即获得返回。
+2. Amazon SNS根据请求中的运行时名称，将请求投送至对应运行时的 [Amazon Simple Queue Service](https://aws.amazon.com/sqs/){:target="_blank"} (Amazon SQS) 队列。
+3. 在 [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/){:target="_blank"} (Amazon EKS) 集群中，已经部署的Kubernetes Event Driven Auto-Scaler (KEDA) 会根据队列内消息数量扩充运行时的副本数。
+4. 在Amazon EKS 集群中，Karpenter会启动新的[Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/){:target="_blank"} 实例以承载新的副本，这些实例运行[Bottlerocket OS](https://aws.amazon.com/bottlerocket/){:target="_blank"}操作系统，采用[Spot](https://aws.amazon.com/ec2/spot)/On-demand混合购买方式，且通过EBS快照预载Stable Diffusion运行时的容器镜像。
+5. Stable Diffusion 运行时启动，或模型切换时会通过[Mountpoint for Amazon S3 CSI Driver](https://github.com/awslabs/mountpoint-s3-csi-driver){:target="_blank"}，直接从[Amazon Simple Storage Service](https://aws.amazon.com/efs/){:target="_blank"} (Amazon S3)存储桶中加载模型
+6. Queue Agent会从 Amazon SQS 队列里接收任务，并发送给Stable Diffusion运行时生成图像
+7. 生成的图片由Queue Agent存储至 Amazon S3存储桶中。
+8. 完成通知投送至 Amazon SNS 主题，SNS可将响应投送至SQS或其他目标中
+
 
 ### 使用的AWS服务
+
+| **AWS Service** | **Description** |
+| ---- | ----|
+| [Amazon Simple Storage Service - S3](http://aws.amazon.com/s3/){:target="_blank"}         | 用于存储模型和生成的图像 |
+| [Amazon Virtual Private Cloud - VPC](https://aws.amazon.com/vpc/){:target="_blank"}| 提供基础网络服务 |
+| [Amazon Elastic Conatiner Registry - ECR](http://aws.amazon.com/ecr/){:target="_blank"}         | 用于存储运行时所需的容器镜像 |
+| [Amazon API Gateway](http://aws.amazon.com/api-gateway/){:target="_blank"}         | 用于提供对外访问的API接口 |
+| [AWS Lambda](https://aws.amazon.com/lambda){:target="_blank"}| 用于进行请求验证和路由 |
+| [Amazon Simple Queue Service - SQS](https://aws.amazon.com/sqs){:target="_blank"} | 用于存放待处理的任务 |
+| [Amazon Simple Notification Service - SNS](https://aws.amazon.com/sns){:target="_blank"} | 用于将任务路由到不同的SQS队列，以及提供处理完成后通知和回调 |
+| [Amazon Elastic Kubernetes Service - EKS](https://aws.amazon.com/eks){:target="_blank"} | Used for managing and running the Stable Diffusion runtimes. |
+| [Amazon Elastic Compute Cloud - EC2](https://aws.amazon.com/ec2){:target="_blank"}  | Used for running the Stable Diffusion runtimes. |
+| [Amazon CloudWatch](https://aws.amazon.com/cloudwatch){:target="_blank"}  | Used for monitoring system health, providing metrics, logs, and traces. |
+| [AWS CDK](https://aws.amazon.com/cdk){:target="_blank"}   | Used for deploying and updating this guidance. |
 
 | AWS 服务 | 描述  |
 | ---- | ----|
@@ -118,20 +125,109 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 | [Amazon CloudWatch](https://aws.amazon.com/cloudwatch)       | 用于监控系统的运行状况，提供数值监控，日志和跟踪。|
 | [AWS CDK](https://aws.amazon.com/cdk)       | 用于部署和更新该解决方案。|
 
+## 费用预估
 
-## 计划部署
+您需要为使用该解决方案中包含的AWS服务付费。按2024年4月价格计算，在美国西部（俄勒冈）区域运行该解决方案一个月，且生成一百万张图片的价格约为（不含免费额度） 436.72 美元。
 
-请在部署前检查以下所有的考虑因素：
+我们建议您在[AWS Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/){:target="_blank"} 上[创建预算](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-create.html){:target="_blank"} 以帮助管理成本。价格有可能改变。请参考对应的AWS服务定价页面以获取具体的价格。
 
-### 可部署区域
+与图像数量有关的浮动费用，主要服务价格列表如下（按每百万张图片计）：
+
+| **AWS 服务**  | **计费维度** | **每百万张图片所需数量** | **单价 \[USD\]** | **总价 \[USD\]**
+|-----------|------------|------------|------------|------------|
+| Amazon EC2 | g5.2xlarge 实例，Spot实例每小时费用  | 416.67 | \$ 0.4968 | \$ 207 |
+| Amazon API Gateway | 每 1 百万个 REST API 请求  | 1 | \$ 3.50 | \$ 3.50 |
+| AWS Lambda | 每 GB 每秒  | 12,500 | \$ 0.0000166667 | \$ 0.21 |
+| AWS Lambda | 每 1 百万个请求  | 1 | \$ 0.20 | \$ 0.20 |
+| Amazon SNS | 每 1 百万个请求  | 2 | \$ 0.50 | \$ 0.50 |
+| Amazon SNS | 数据传输每 GB  | 7.62**  | \$ 0.09 | \$ 0.68 |
+| Amazon SQS | 每 1 百万个请求  | 2 | \$ 0.40 | \$ 0.80 |
+| Amazon S3 | 每 1 千个 PUT 请求  | 2,000 | \$ 0.005 | \$ 10.00 |
+| Amazon S3 | 每 GB 每月  | 143.05*** | \$ 0.023 | \$ 3.29
+| **小计，每 1 百万张图片** | | | | **\$ 226.18** |
+
+与图像数量无关的固定费用，主要服务价格列表如下（按月计）：
+
+| **AWS 服务**  | **计费维度** | **每月所需数量** | **单价 \[USD\]** | **总价 \[USD\]**
+|-----------|------------|------------|------------|------------|
+| Amazon EKS | 集群  | 1 | \$ 72.00 | \$ 72.00 |
+| Amazon EC2 | m5.large 实例，按需实例每小时费用  | 1440 | \$ 0.0960 | \$ 138.24 |
+| **小计，每月** | | | | **\$ 210.24** |
+
+- \* 按每个请求耗时 1.5 秒计算，单价参照 2024 年 1 月 29 日 至 2024 年 4 月 28 日 美国西部（俄勒冈）区域所有可用区Spot实例价格之平均值
+- \*\* 按请求平均 16 KB 计算
+- \*\*\* 按图像平均 150 KB，存储 1 个月计算
+
+
+请注意该估算仅为参考费用。实际的费用可能会根据您所使用的模型，任务参数，Spot实例当前定价等有所不同。
+
+## 安全
+
+在构建基于AWS基础设施的系统时，安全责任由您和AWS共同承担。这个[责任共担模型](https://aws.amazon.com/compliance/shared-responsibility-model/)减轻了您的运维负担，因为AWS负责操作、管理和控制组件，包括主机操作系统、虚拟化层以及服务所在设施的物理安全。有关AWS安全性的更多信息，请参阅[AWS云安全](http://aws.amazon.com/security/)。
+
+### IAM 角色
+AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问策略和权限到 AWS 云上的服务和用户。
+
+此解决方案会为以下组件创建独立的IAM角色并授予权限：
+1. Amazon EKS 集群，含
+  * 创建和操作集群
+  * 节点组
+  * Karpenter创建的节点
+  * 集群中运行的 Pod，含
+    * Karpenter
+    * KEDA
+    * Fluent Bit
+    * Stable Diffusion运行时
+2. AWS Lambda 函数
+3. Amazon API Gateway
+
+该解决方案通过IAM角色对内部用户进行访问控制，通过遵循最小权限原则，使得每个组件只能访问被授权的组件，确保工作负载之间的隔离性。
+
+### 访问控制
+
+该解决方案通过API Key机制对外部用户进行访问控制，用户需在请求中包含合法的API Key。关于API Key的更多信息，请参考[API规范文档](#api-调用规则)。
+
+### 网络
+
+该解决方案工作在独立的VPC中，默认与您的其他工作负载相隔离。如您需要将该VPC与您现有的VPC相连接，或连接到中转网关，您需要自行负责网关，防火墙和访问控制。
+
+## 服务配额
+
+{: .note }
+要在不切换页面的情况下查看文档中所有 AWS 服务的服务配额，请以PDF格式查看[服务端点和配额]((https://docs.aws.amazon.com/general/latest/gr/aws-general.pdf#aws-service-information){:target="_blank"} 页面中的信息。
+
+每个AWS区域的每个AWS账户都有关于可以创建的资源数量的配额，您可以在AWS控制台中使用 [Service Quota](https://console.aws.amazon.com/servicequotas/home/){:target="_blank"} 工具了解服务配额。如该服务配额可提升，您可以通过该工具并自助式开立工单提升服务配额。
+
+与该解决方案相关的主要服务配额为：
+
+| AWS 服务 | 配额条目 | 预估使用量 | 是否可调整 |
+|---------|---------|-----------|-----------|
+| Amazon EC2  | [Running On-Demand G and VT instances](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-DB2E81BA){:target="_blank"} | 按最大并发GPU实例数量 | [X]  |
+| Amazon EC2  | [All G and VT Spot Instance Requests](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-3819A6DF){:target="_blank"} | 按最大并发GPU实例数量 | [X]  |
+| Amazon SNS  | [Messages Published per Second](https://console.aws.amazon.com/servicequotas/home/services/sns/quotas/L-F8E2BA85){:target="_blank"} | 按最大并发请求数 | [X]  |
+
+除此之外，部署时需要考虑以下服务配额：
+
+| AWS 服务 | 配额条目 | 预估使用量 | 是否可调整 |
+|---------|---------|-----------|-----------|
+| Amazon VPC  | [VPCs per Region](https://console.aws.amazon.com/servicequotas/home/services/vpc/quotas/L-F678F1CE){:target="_blank"} | 1 | [X] |
+| Amazon VPC  | [NAT gateways per Availability Zone](https://console.aws.amazon.com/servicequotas/home/services/vpc/quotas/L-FE5A380F){:target="_blank"} | 1 | [X]  |
+| Amazon EC2  | [EC2-VPC Elastic IPs](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-0263D0A3){:target="_blank"} | 1 | [X]  |
+| Amazon S3  | [General purpose buckets](https://console.aws.amazon.com/servicequotas/home/services/s3/quotas/L-DC2B2D3D){:target="_blank"} | 每个队列1个 | [X]  |
+
+## 部署解决方案
+
+### 部署前准备
+
+#### 可部署区域
 此解决方案使用的服务，或 Amazon EC2 实例类型目前可能并非在所有 AWS 区域都可用。请在提供所需服务的 AWS 区域中启动此解决方案。
 
 **已验证可部署的区域**
 
-| 区域名称           | 验证通过 |
-|----------------|---------------------------------------|
-| 美国东部 (弗吉尼亚北部)  | ✅  |
-| 美国西部 (俄勒冈)     | ✅  |
+| 区域名称| 验证通过 |
+|---------|---------------|
+| 美国东部 (弗吉尼亚北部)  | [X]  |
+| 美国西部 (俄勒冈)     | [X]  |
 
 如您在未经验证的区域进行部署，可能需要进行以下处理，或面临以下问题：
 
@@ -141,32 +237,11 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 
 该解决方案支持在亚马逊云科技中国区域部署，但步骤与正常部署流程不同。请参见[在亚马逊云科技中国区域部署](#在亚马逊云科技中国区域部署)
 
-### IAM 权限
+#### IAM 权限
 
 部署该解决方案需要管理员或与之相当的权限。由于组件较多，我们暂不提供最小权限列表。
 
-### 服务配额
-
-每个AWS区域的每个AWS账户都有关于可以创建的资源数量的配额，您可以在AWS控制台中使用 [Service Quota](https://console.aws.amazon.com/servicequotas/home/) 工具了解服务配额。如该服务配额可提升，您可以通过该工具并自助式开立工单提升服务配额。
-
-与该解决方案相关的主要服务配额为：
-
-| AWS 服务 | 配额条目 | 预估使用量 | 是否可调整 |
-|---------|---------|-----------|-----------|
-| Amazon EC2  | [Running On-Demand G and VT instances](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-DB2E81BA) | 按最大并发GPU实例数量 | ✅  |
-| Amazon EC2  | [All G and VT Spot Instance Requests](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-3819A6DF) | 按最大并发GPU实例数量 | ✅  |
-| Amazon SNS  | [Messages Published per Second](https://console.aws.amazon.com/servicequotas/home/services/sns/quotas/L-F8E2BA85) | 按最大并发请求数 | ✅  |
-
-除此之外，部署时需要考虑以下服务配额：
-
-| AWS 服务 | 配额条目 | 预估使用量 | 是否可调整 |
-|---------|---------|-----------|-----------|
-| Amazon VPC  | [VPCs per Region](https://console.aws.amazon.com/servicequotas/home/services/vpc/quotas/L-F678F1CE) | 1 | ✅ |
-| Amazon VPC  | [NAT gateways per Availability Zone](https://console.aws.amazon.com/servicequotas/home/services/vpc/quotas/L-FE5A380F) | 1 | ✅  |
-| Amazon EC2  | [EC2-VPC Elastic IPs](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-0263D0A3) | 1 | ✅  |
-| Amazon S3  | [General purpose buckets](https://console.aws.amazon.com/servicequotas/home/services/s3/quotas/L-DC2B2D3D) | 每个队列1个 | ✅  |
-
-### 选择 Stable Diffusion 运行时
+#### 选择 Stable Diffusion 运行时
 
 您需要运行时来部署Stable Diffusion模型并提供API访问。
 
@@ -174,8 +249,8 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 
 | 运行时名称           | 链接 |  验证  |
 |----------------|-----------------|----------------------|
-| Stable Diffusion Web UI  | [GitHub](https://github.com/AUTOMATIC1111/stable-diffusion-webui) | ✅  |
-| ComfyUI     | [GitHub](https://github.com/comfyanonymous/ComfyUI) | ✅  |
+| Stable Diffusion Web UI  | [GitHub](https://github.com/AUTOMATIC1111/stable-diffusion-webui) | [X]  |
+| ComfyUI     | [GitHub](https://github.com/comfyanonymous/ComfyUI) | [X]  |
 | InvokeAI     | [GitHub](https://github.com/invoke-ai/InvokeAI) |   |
 
 您也可以选择其他运行时，或构建自己的运行时。您需要将运行时打包为容器镜像，以便在 EKS 上运行。
@@ -215,73 +290,10 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
     - 1个Internet网关
     - 对应的路由表和安全组
 
-    目前该VPC的参数无法自定义。
+    **目前该VPC的参数无法自定义。**
 
 - 在当前版本，该解决方案只能在新建的EKS集群上部署，且版本固定为`1.29`。我们会随着Amazon EKS版本发布更新集群版本。
 
-### 费用预估
-
-您需要为使用该解决方案中包含的AWS服务付费。按2024年4月价格计算，在美国西部（俄勒冈）区域运行该解决方案一个月，且生成一百万张图片的价格约为（不含免费额度） 436.72 美元。
-
-与图像数量有关的浮动费用，主要服务价格列表如下（按每百万张图片计）：
-
-| **AWS 服务**  | 计费维度 | 每百万张图片所需数量 | 单价 \[USD\] | 总价 \[USD\]
-|-----------|------------|------------|------------|
-| Amazon EC2 | g5.2xlarge 实例，Spot实例每小时费用  | 416.67 | \$ 0.4968 | \$ 207 |
-| Amazon API Gateway | 每 1 百万个 REST API 请求  | 1 | \$ 3.50 | \$ 3.50 |
-| AWS Lambda | 每 GB 每秒  | 12,500 | \$ 0.0000166667 | \$ 0.21
-| AWS Lambda | 每 1 百万个请求  | 1 | \$ 0.20 | \$ 0.20
-| Amazon SNS | 每 1 百万个请求  | 2 | \$ 0.50 | \$ 0.50
-| Amazon SNS | 数据传输每 GB  | 7.62**  | \$ 0.09 | \$ 0.68
-| Amazon SQS | 每 1 百万个请求  | 2 | \$ 0.40 | \$ 0.80
-| Amazon S3 | 每 1 千个 PUT 请求  | 2,000 | \$ 0.005 | \$ 10.00
-| Amazon S3 | 每 GB 每月  | 143.05*** | \$ 0.023 | \$ 3.29
-
-与图像数量无关的固定费用，主要服务价格列表如下（按月计）：
-
-| **AWS 服务**  | 计费维度 | 每月所需数量 | 单价 \[USD\] | 总价 \[USD\]
-|-----------|------------|------------|------------|
-| Amazon EKS | 集群  | 1 | \$ 72.00 | \$ 72.00 |
-| Amazon EC2 | m5.large 实例，按需实例每小时费用  | 1440 | \$ 0.0960 | \$ 138.24 |
-
-\* 按每个请求耗时 1.5 秒计算，单价参照 2024 年 1 月 29 日 至 2024 年 4 月 28 日 美国西部（俄勒冈）区域所有可用区Spot实例价格之平均值
-{: .fs-1 }
-\*\* 按请求平均 16 KB 计算
-{: .fs-1 }
-\*\*\* 按图像平均 150 KB，存储 1 个月计算
-{: .fs-1 }
-请注意该估算仅为参考费用。实际的费用可能会根据您所使用的模型，任务参数，Spot实例当前定价等有所不同。
-
-## 安全
-
-在构建基于AWS基础设施的系统时，安全责任由您和AWS共同承担。这个[责任共担模型](https://aws.amazon.com/compliance/shared-responsibility-model/)减轻了您的运维负担，因为AWS负责操作、管理和控制组件，包括主机操作系统、虚拟化层以及服务所在设施的物理安全。有关AWS安全性的更多信息，请参阅[AWS云安全](http://aws.amazon.com/security/)。
-
-### IAM 角色
-AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问策略和权限到 AWS 云上的服务和用户。
-
-此解决方案会为以下组件创建独立的IAM角色并授予权限：
-* Amazon EKS 集群，含
-  * 创建和操作集群
-  * 节点组
-  * Karpenter创建的节点
-  * 集群中运行的 Pod，含
-    * Karpenter
-    * KEDA
-    * Fluent Bit
-    * Stable Diffusion运行时
-* AWS Lambda 函数
-* Amazon API Gateway
-* Amazon EKS
-
-该解决方案通过IAM角色对内部用户进行访问控制，通过遵循最小权限原则，使得每个组件只能访问被授权的组件，确保工作负载之间的隔离性。
-
-### 访问控制
-
-该解决方案通过API Key机制对外部用户进行访问控制，用户需在请求中包含合法的API Key。关于API Key的更多信息，请参考[API规范文档](#api-调用规则)。
-
-### 网络
-
-该解决方案工作在独立的VPC中，默认与您的其他工作负载相隔离。如您需要将该VPC与您现有的VPC相连接，或连接到中转网关，您需要自行负责网关，防火墙和访问控制。
 
 ## 部署解决方案
 
@@ -292,8 +304,8 @@ AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问
 运行以下命令以获取源代码和部署脚本：
 
 ```bash
-git clone --recursive https://github.com/aws-samples/stable-diffusion-on-eks
-cd stable-diffusion-on-eks
+git clone --recursive https://github.com/aws-solutions-library-samples/guidance-for-asynchronous-inference-with-stable-diffusion-webui-on-aws
+cd guidance-for-asynchronous-inference-with-stable-diffusion-webui-on-aws
 ```
 
 ### 快速开始
@@ -312,7 +324,7 @@ cd deploy
 该脚本将：
 
 * 安装必要的运行时和工具
-* 创建S3存储桶，从[HuggingFace](https://huggingface.co/runwayml/stable-diffusion-v1-5)中下载Stable Diffusion 1.5的基础模型，放置在存储桶中
+* 创建S3存储桶，从[HuggingFace](https://huggingface.co/runwayml/stable-diffusion-v1-5){:target="_blank"} 中下载Stable Diffusion 1.5的基础模型，放置在存储桶中
 * 使用我们提供的示例镜像，创建包含SD Web UI镜像的EBS快照
 * 创建一个含SD Web UI运行时的Stable Diffusion解决方案
 
@@ -362,20 +374,18 @@ cd deploy
 
 请按以下步骤创建存储桶：
 
-AWS管理控制台
-{: .label .label-blue }
+**AWS管理控制台**:
 
 * 打开 [Amazon S3 控制台](https://console.aws.amazon.com/s3/)。
 * 在左侧导航窗格中，选择 **Buckets**（桶）。
 * 选择 **Create Bucket**（创建桶）。
-* 在 **Bucket name**（桶名称）中输入存储桶的名称。名称需符合[存储桶命名规则](https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/userguide/bucketnamingrules.html)。
+* 在 **Bucket name**（桶名称）中输入存储桶的名称。名称需符合[存储桶命名规则](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html){:target="_blank"}。
 * 在 **AWS Region** （AWS 区域）中，选择您准备部署解决方案的相同区域。
 {: .warning }
 为确保模型读取速度，请确保该存储桶与您的解决方案部署在同一个 AWS 区域。如您希望在多个区域部署解决方案的多个副本，请在每个区域单独创建一个存储桶。
 * 选择 **Create Bucket**（创建桶）
 
-AWS CLI
-{: .label .label-green }
+**AWS CLI**:
 
 运行以下命令以创建存储桶。将`<bucket name>`替换为您希望的存储桶名称，`us-east-1`替换成您准备部署解决方案的 AWS 区域：
 ```bash
@@ -407,12 +417,11 @@ aws s3api create-bucket --bucket <bucket name> --region us-east-1
 
 请将模型放入对应的目录中。其中 `Stable-diffusion` 目录必须存在且存有Stable Diffusion模型。其余目录如无模型可不创建。
 
-目前支持 `.safetensors` 和 `.ckpt` 格式的模型。如您从[Civitai](https://civitai.com/)下载的模型不带扩展名，请添加 `.ckpt` 扩展名。
+目前支持 `.safetensors` 和 `.ckpt` 格式的模型。如您从[Civitai](https://civitai.com/){:target="_blank"}下载的模型不带扩展名，请添加 `.ckpt` 扩展名。
 
 请按以下步骤将模型上传至S3存储桶中：
 
-AWS管理控制台
-{: .label .label-blue }
+**AWS管理控制台**:
 
 * 打开 [Amazon S3 控制台](https://console.aws.amazon.com/s3/)。
 * 在左侧导航窗格中，选择 **Buckets**（桶）。
@@ -426,8 +435,7 @@ AWS管理控制台
 * 选择 **Add files** （添加文件），选择待上传的模型文件。
 * 选择 **Upload**。在上传过程中请不要关闭浏览器。
 
-AWS CLI
-{: .label .label-green }
+**AWS CLI**:
 
 运行以下命令以将模型文件上传至存储桶。将`<model name>`替换成为您的模型文件名，`<folder>`替换为模型类型， `<bucket name>`替换为您希望的存储桶名称：
 ```bash
@@ -466,7 +474,8 @@ aws s3 cp <model name> s3://<bucket name>/<folder>/
 ```bash
 docker build -t queue-agent:latest src/backend/queue_agent/
 ```
-{: .highlight-title }
+
+{: .new-title }
 > 示例运行时
 >
 > 您可以使用社区提供的[示例 Dockerfile](https://github.com/yubingjiaocn/stable-diffusion-webui-docker) 构建 *Stable Diffusion Web UI* 和 *ComfyUI* 的运行时容器镜像。请注意，该镜像仅用于技术评估和测试用途，请勿将该镜像部署至生产环境。
@@ -476,22 +485,21 @@ docker build -t queue-agent:latest src/backend/queue_agent/
 {: .note-title }
 > 镜像仓库选择
 >
-> 我们推荐使用Amazon ECR作为镜像仓库，但您也可以选择其他支持[OCI标准](https://www.opencontainers.org/)的镜像仓库（如Harbor）。
+> 我们推荐使用Amazon ECR作为镜像仓库，但您也可以选择其他支持[OCI标准](https://www.opencontainers.org/){:target="_blank"}的镜像仓库（如[Harbor](https://goharbor.io/){:target="_blank"}）。
 
 {: .highlight-title }
 > 首次推送
 >
 > Amazon ECR需要在推送前预先创建镜像仓库。
 >
-> AWS CLI
-> {: .label .label-green }
+> **AWS CLI**
 >
 > 运行下列命令以创建：
 > ```bash
 > aws ecr create-repository --repository-name sd-on-eks/queue-agent
 > ```
-> AWS管理控制台
-> {: .label .label-blue }
+>
+> **AWS管理控制台**
 >
 > * 打开位于 https://console.aws.amazon.com/ecr/ 的 Amazon ECR 控制台。
 > * 选择**开始使用**。
@@ -525,15 +533,15 @@ docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/sd-on-eks/queue-agent:l
 >
 > Amazon ECR需要在推送前预先创建镜像仓库。
 >
-> AWS CLI
-> {: .label .label-green }
+> **AWS CLI**：
+>
 > 运行下列命令以创建：
 > ```bash
 > aws ecr create-repository --repository-name sd-on-eks/charts/sd-on-eks
 > ```
 >
-> AWS管理控制台
-> {: .label .label-blue }
+> **AWS管理控制台**：
+>
 >
 > * 打开位于 https://console.aws.amazon.com/ecr/ 的 Amazon ECR 控制台。
 > * 选择**开始使用**。
@@ -595,8 +603,8 @@ modelsRuntime:
 
 应在部署解决方案前创建 EBS 快照。我们提供了用于构建 EBS 快照的脚本。
 
-使用自定义镜像
-{: .label .label-blue }
+**使用自定义镜像**
+
 如您自行构建镜像并推送到Amazon ECR，则运行下列命令。将 `us-east-1`替换成解决方案所在区域，将 `123456789012` 替换为您的12位AWS账号:
 
 ```bash
@@ -604,8 +612,8 @@ cd utils/bottlerocket-images-cache
 ./snapshot.sh 123456789012.dkr.ecr.us-east-1.amazonaws.com/sd-on-eks/sdwebui:latest,123456789012.dkr.ecr.us-east-1.amazonaws.com/sd-on-eks/queue-agent:latest
 ```
 
-使用预构建镜像
-{: .label .label-green }
+**使用预构建镜像**
+
 如您使用解决方案自带的镜像，则运行下列命令：
 
 ```bash
@@ -615,7 +623,7 @@ cd utils/bottlerocket-images-cache
 
 脚本运行完成后，会输出EBS快照ID（格式类似于`snap-0123456789`）。您可以在部署时应用该快照。
 
-有关该脚本的详细信息，请参考[GitHub仓库](https://github.com/aws-samples/bottlerocket-images-cache)
+有关该脚本的详细信息，请参考[GitHub仓库](https://github.com/aws-samples/bottlerocket-images-cache){:target="_blank"}
 
 #### 手动部署
 
@@ -625,10 +633,10 @@ cd utils/bottlerocket-images-cache
 
 请在部署前安装以下运行时：
 
-* [Node.js](https://nodejs.org/en) 18及以上版本
-* [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-* [AWS CDK 工具包](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
-* [git](https://git-scm.com/downloads)
+* [Node.js](https://nodejs.org/en){:target="_blank"} 18及以上版本
+* [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html){:target="_blank"}
+* [AWS CDK 工具包](https://docs.aws.amazon.com/cdk/v2/guide/cli.html){:target="_blank"}
+* [git](https://git-scm.com/downloads){:target="_blank"}
 
 **编辑配置文件**
 
@@ -711,7 +719,7 @@ cd utils/bottlerocket-images-cache
 
 5. 其他详细设置（可选）
 
-    如您需要对运行时进行详细配置，请参考[配置项](./configuration.md)。
+    如您需要对运行时进行详细配置，请参考[配置项](https://github.com/aws-solutions-library-samples/guidance-for-asynchronous-inference-with-stable-diffusion-webui-on-aws/blob/main/src/charts/sd_on_eks/values.yaml)。
 
 
 **开始部署**
@@ -743,12 +751,12 @@ sdoneksStack.ConfigCommand = aws eks update-kubeconfig --name sdoneksStack --reg
 
 | 区域名称           | 验证通过 |
 |----------------|---------------------------------------|
-| 中国 (宁夏)  | ✅  |
+| 中国 (宁夏)  | [x]  |
 
 但由于中国的网络环境特殊，会受到如下限制：
 
 * 需要自行构建容器镜像，或将标准镜像复制到中国区域的ECR上。不建议使用ECR Public的镜像。
-* 部分组件的Helm Chart位于Github上，在中国区部署时，有几率无法获取到Helm Chart，需要重试。
+* 部分组件的Helm Chart位于Github上，在中国区部署时，有几率无法获取到Helm Chart，如该故障发生，需要重试部署。
 * 无法自动从Hugging Face或Github上下载模型，需要手工下载模型并上传至S3存储桶。
 
 #### 在中国区部署的步骤
@@ -778,15 +786,15 @@ aws ecr create-repository --repository-name sd-on-eks/sdwebui
 aws ecr create-repository --repository-name sd-on-eks/comfyui
 aws ecr create-repository --repository-name sd-on-eks/queue-agent
 
-docker tag public.ecr.aws/bingjiao/sd-on-eks/sdwebui:latest 123456789012.dkr.ecr.cn-northwest.amazonaws.com.cn/sd-on-eks/sdwebui:latest
-docker tag public.ecr.aws/bingjiao/sd-on-eks/comfyui:latest 123456789012.dkr.ecr.cn-northwest.amazonaws.com.cn/sd-on-eks/comfyui:latest
-docker tag public.ecr.aws/bingjiao/sd-on-eks/queue-agent:latest 123456789012.dkr.ecr.cn-northwest.amazonaws.com.cn/sd-on-eks/queue-agent:latest
+docker tag public.ecr.aws/bingjiao/sd-on-eks/sdwebui:latest 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn/sd-on-eks/sdwebui:latest
+docker tag public.ecr.aws/bingjiao/sd-on-eks/comfyui:latest 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn/sd-on-eks/comfyui:latest
+docker tag public.ecr.aws/bingjiao/sd-on-eks/queue-agent:latest 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn/sd-on-eks/queue-agent:latest
 
 aws ecr get-login-password --region cn-northwest-1 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn
 
-docker push 123456789012.dkr.ecr.cn-northwest.amazonaws.com.cn/sd-on-eks/sdwebui:latest
-docker push 123456789012.dkr.ecr.cn-northwest.amazonaws.com.cn/sd-on-eks/comfyui:latest
-docker push 123456789012.dkr.ecr.cn-northwest.amazonaws.com.cn/sd-on-eks/queue-agent:latest
+docker push 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn/sd-on-eks/sdwebui:latest
+docker push 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn/sd-on-eks/comfyui:latest
+docker push 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn/sd-on-eks/queue-agent:latest
 ```
 
 我们建议您按照[镜像构建](#镜像构建)文档提供的方式，将Helm Chart放置在ECR或HTTP服务器中。
@@ -842,8 +850,8 @@ modelsRuntime:
           snapshotID: snap-1234567890 # 此处会自动填入EBS快照的ID
       provisioner:
         instanceType:
-        - "g4dn.xlarge"
-        - "g4dn.2xlarge"
+        - "g5.xlarge"
+        - "g5.2xlarge"
         capacityType:
           onDemand: true
           spot: true
@@ -886,8 +894,7 @@ STACK_NAME=sdoneksStack RUNTIME_TYPE=sdwebui ./run.sh
 
 解决方案的API端点可以从CloudFormation的输出中获取：
 
-AWS管理控制台
-{: .label .label-blue }
+**AWS管理控制台**
 
 * 进入 [AWS CloudFormation 控制台](https://console.aws.amazon.com/cloudformation/home)
 * 选择 **Stacks** （堆栈）
@@ -895,8 +902,7 @@ AWS管理控制台
 * 选择 **Output** （输出）
 * 记录 **FrontApiEndpoint** 项的值（格式为  `https://abcdefghij.execute-api.ap-southeast-1.amazonaws.com/prod/`）
 
-AWS CLI
-{: .label .label-green }
+**AWS CLI**
 
 运行以下命令以获取 API端点：
 
@@ -926,16 +932,14 @@ https://abcdefghij.execute-api.ap-southeast-1.amazonaws.com/prod/v1alpha2
 
 出于安全考虑，所有请求需要附加API Key。通过以下步骤获取API Key：
 
-AWS管理控制台
-{: .label .label-blue }
+**AWS管理控制台**
 
 * 进入 [Amazon API Gateway 控制台](https://console.aws.amazon.com/apigateway)
 * 选择 **API Keys**
 * 在列表中，选择名称类似于 `SdOnEK-defau-abcdefghij`（或您自定义的名称）的API Key
 * 记录 **API key** 项的值
 
-AWS CLI
-{: .label .label-green }
+**AWS CLI**
 
 运行以下命令以获取API Key：
 
@@ -959,7 +963,7 @@ echo $(aws cloudformation describe-stacks --stack-name SdOnEKSStack --output tex
 * 每秒30个请求
 * 可突增50个请求
 
-关于限流的原理详细信息，请参考[Throttle API requests for better throughput](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html)
+关于限流的原理详细信息，请参考[Throttle API requests for better throughput](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html){:target="_blank"}
 
 如您需要修改该设置，请在`config.yaml`中修改`APIGW`段的相关内容。您也可以在API Gateway中修改对应Usage Plan。
 
@@ -968,14 +972,15 @@ echo $(aws cloudformation describe-stacks --stack-name SdOnEKSStack --output tex
 {: .highlight }
 此请求类型仅适用于SD Web UI运行时。
 
-Stable Diffusion的最基本用法，输入Prompt，可以生成对应图像。
+Stable Diffusion的基本用法，输入Prompt，可以生成对应图像。
 
 请求中的内容将会直接传入SD Web UI，但如有链接（HTTP或S3 URL），则会将链接内容转为base64编码后的内容填入对应项。
 
 #### 请求格式
 
-v1alpha2
-{: .label .label-green }
+**v1alpha2**
+
+
 ```json-doc
 {
   "task": {
@@ -1007,7 +1012,7 @@ v1alpha1
         "id_task": "test-t2i", // 必要，任务ID，在上传结果图片和返回响应时会用到
         "save_dir": "outputs" // 必要，输出文件在S3桶中的前缀（即目录名）
     },
-    // 以下皆为官方参数，使用默认值或者直接传入即可
+    // 与 SD Web UI text-to-image 接口相同规范
     "prompt": "A dog",
     "steps": 16,
     "width": 512,
@@ -1017,8 +1022,8 @@ v1alpha1
 
 #### 响应格式
 
-v1alpha2
-{: .label .label-green }
+**v1alpha2**
+
 ```json-doc
 {
   "id_task": "test-t2i",
@@ -1027,8 +1032,8 @@ v1alpha2
 }
 ```
 
-v1alpha1
-{: .label .label-blue }
+**v1alpha1**
+
 ```json-doc
 {
   "id_task": "test-t2i",
@@ -1069,8 +1074,8 @@ Stable Diffusion的基本用法，输入Prompt和参考图像，可以生成与�
 
 #### 请求格式
 
-v1alpha2
-{: .label .label-green }
+**v1alpha2**
+
 ```json-doc
 {
   "task": {
@@ -1093,8 +1098,8 @@ v1alpha2
 }
 ```
 
-v1alpha1
-{: .label .label-blue }
+**v1alpha1**
+
 ```json-doc
 {
     "alwayson_scripts": {
@@ -1113,8 +1118,8 @@ v1alpha1
 
 #### 响应格式
 
-v1alpha2
-{: .label .label-green }
+**v1alpha2**
+
 ```json-doc
 {
   "id_task": "test-i2i",
@@ -1123,8 +1128,8 @@ v1alpha2
 }
 ```
 
-v1alpha1
-{: .label .label-blue }
+**v1alpha1**
+
 ```json-doc
 {
   "id_task": "test-i2i",
@@ -1164,8 +1169,8 @@ v1alpha1
 
 #### 请求格式
 
-v1alpha2
-{: .label .label-green }
+**v1alpha2**
+
 ```json-doc
 {
   "task": {
@@ -1252,8 +1257,8 @@ ComfyUI提供工作流编排功能，可以在界面上使用多种节点编排�
 
 #### 请求格式
 
-v1alpha2
-{: .label .label-green }
+**v1alpha2**
+
 ```json-doc
 {
   "task": {
@@ -1273,8 +1278,8 @@ v1alpha2
 
 #### 响应格式
 
-v1alpha2
-{: .label .label-green }
+**v1alpha2**
+
 ```json-doc
 {
   "id_task": "test-pipeline",
@@ -1299,8 +1304,8 @@ Stable Diffusion on Amazon EKS方案采用异步推理模式，当图片生成�
 
 您可以从CloudFormation的输出中找到生成的 SNS 主题 ARN：
 
-AWS管理控制台
-{: .label .label-blue }
+**AWS管理控制台**
+
 
 * 进入 [AWS CloudFormation 控制台](https://console.aws.amazon.com/cloudformation/home)
 * 选择 **Stacks** （堆栈）
@@ -1308,8 +1313,8 @@ AWS管理控制台
 * 选择 **Output** （输出）
 * 记录 **sdNotificationOutputArn** 项的值（格式为  `arn:aws:sns:us-east-1:123456789012:SdOnEKSStack-sdNotificationOutputCfn-abcdefgh`）
 
-AWS CLI
-{: .label .label-green }
+**AWS CLI**
+
 
 运行以下命令以获取 SNS 主题 ARN：
 
@@ -1319,8 +1324,8 @@ aws cloudformation describe-stacks --stack-name SdOnEKSStack --output text --que
 
 如需接收消息，您需要将您的消息接收端（如Amazon SQS队列，HTTP 终端节点等）作为**订阅**添加到该SNS主题中。
 
-AWS管理控制台
-{: .label .label-blue }
+**AWS管理控制台**
+
 
 * 在左侧导航窗格中，选择**Subscriptions** （订阅）。
 * 在 **Subscriptions**（订阅）页面上，选择 **Create subscription**（创建订阅）。
@@ -1330,8 +1335,7 @@ AWS管理控制台
     * 对于 **Endpoint**（终端节点），输入您的接收端地址，例如电子邮件地址或 Amazon SQS 队列的 ARN。
 * 选择 **Create subscription**（创建订阅）
 
-AWS CLI
-{: .label .label-green }
+**AWS CLI**
 
 请参考[Use Amazon SNS with the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-services-sns.html#cli-subscribe-sns-topic) 添加对该主题的订阅。
 
@@ -1368,7 +1372,7 @@ AWS CLI
     * Amazon EKS 集群及所有工作节点
     * SNS 主题及所有订阅
     * SQS 队列
-    * VPC
+    * VPC，子网等网络资源
     * 解决方案使用的IAM角色
 
 * 以下内容**不会**被删除：
@@ -1387,16 +1391,14 @@ AWS CLI
 
 您可以通过CDK CLI或AWS 管理控制台删除该解决方案。
 
-AWS管理控制台
-{: .label .label-blue }
+**AWS管理控制台**
 
-* 进入 [AWS CloudFormation 控制台](https://console.aws.amazon.com/cloudformation/home)
-* 选择 **Stacks** （堆栈）
-* 在列表中，选择 **sdoneksStack** （或您自定义的名称）
-* 选择 **Delete** （删除），在弹出的对话框中选择 **Delete** （删除）
+- 进入 [AWS CloudFormation 控制台](https://console.aws.amazon.com/cloudformation/home)
+- 选择 **Stacks** （堆栈）
+- 在列表中，选择 **sdoneksStack** （或您自定义的名称）
+- 选择 **Delete** （删除），在弹出的对话框中选择 **Delete** （删除）
 
-AWS CDK CLI
-{: .label .label-green }
+**AWS CDK CLI**
 
 在解决方案源代码目录，运行以下命令以删除解决方案：
 
@@ -1406,23 +1408,32 @@ npx cdk destroy
 
 删除解决方案大约需要 20-30 分钟。
 
+### 相关链接
+
+* [Stable Diffusion web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui){:target="_blank"}
+* [Bottlerocket OS](https://aws.amazon.com/bottlerocket/){:target="_blank"}
+* [KEDA pod autoscaler](https://keda.sh/){:target="_blank"}
+* [Karpenter autoscaler](https://karpenter.sh/){:target="_blank"}
+
+
 ### 贡献者
 
 -   Bingjiao Yu, Container Specialist SA
 -   Harold Sun, Sr. GCR Serverless SSA
 -   Daniel Zilberman, Sr. SA,  Tech Solutions team
 
+**感谢以下代码贡献者:**
+- Anbei Zhao, Sr. Solutions Architect
+- Congyao Lu, Solutions Architect
+- Felix Wang, Sr. Solutions Architect
+- Walkley He, Manager of Container Specialist Soltions Architect
+- Xi Wan, Solutions Architect
 
-## Notices
+**感谢以下支持者:**
+- Xiaoming Fu, Solutions Architect Manager
+- Zhanling Chen, AppMod Specialist Manager
 
-Customers are responsible for making their own independent assessment of
-the information in this document. This document: (a) is for
-informational purposes only, (b) represents AWS current product
-offerings and practices, which are subject to change without notice, and
-(c) does not create any commitments or assurances from AWS and its
-affiliates, suppliers or licensors. AWS products or services are
-provided "as is" without warranties, representations, or conditions of
-any kind, whether express or implied. AWS responsibilities and
-liabilities to its customers are controlled by AWS agreements, and this
-document is not part of, nor does it modify, any agreement between AWS
-and its customers.
+
+## 注意
+
+客户有责任对本文档中的信息进行独立评估。本文档：(a) 仅供参考，(b) 代表 AWS 当前的产品供应和实践，如有变更，恕不另行通知，(c) 不代表 AWS 及其附属机构、供应商或许可方的任何承诺或保证。AWS 产品或服务 "按原样 "提供，不附带任何明示或暗示的担保、陈述或条件。AWS 对其客户的责任和义务由 AWS 协议控制，本文件不是 AWS 与其客户之间任何协议的一部分，也不对其进行修改。

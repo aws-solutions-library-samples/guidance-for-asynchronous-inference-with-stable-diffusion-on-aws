@@ -1,5 +1,5 @@
 stackName: sdoneks
-modelBucketArn: arn:aws:s3:::sdoneks-model-bucket-6dfc
+modelBucketArn: arn:aws:s3:::dummy-bucket
 APIGW:
   stageName: dev
   throttle:
@@ -15,8 +15,8 @@ modelsRuntime:
     karpenter:
       nodeTemplate:
         amiFamily: Bottlerocket
-        dataVolume:
-          snapshotID: snap-02d2236b172fb80eb
+        # dataVolume:
+        #  snapshotID: snap-0123456789
       provisioner:
         instanceType:
         - g6.xlarge

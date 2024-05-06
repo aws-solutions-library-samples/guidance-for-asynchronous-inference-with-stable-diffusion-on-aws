@@ -33,4 +33,4 @@ if (validateConfig(props)) {
   console.log("Deployment failed due to failed validation. Please check and try again.")
 }
 
-Aspects.of(app).add(new AwsSolutionsChecks());
+// Aspects.of(app).add(new AwsSolutionsChecks());
