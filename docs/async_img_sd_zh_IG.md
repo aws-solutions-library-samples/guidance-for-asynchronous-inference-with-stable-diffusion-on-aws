@@ -79,7 +79,7 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 ### 架构图
 本节提供了本指南所部署组件的参考架构图。
 
-{% include image.html file="async_img_sd_zh_images/stable_diffusion_architecture_diagram.jpg" alt="architecture" %}
+{% include image.html file="async_img_sd_zh_images/arch-diagram.png" alt="architecture" %}
 
 *Figure 1: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS architecture*
 

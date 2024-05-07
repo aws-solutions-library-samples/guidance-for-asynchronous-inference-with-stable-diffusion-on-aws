@@ -81,8 +81,7 @@ For each runtime:
 ### Architecture diagram
 This section provides a reference implementation architecture diagram for the components deployed with this Guidance.
 
-<!-- {% include image.html file="async_img_sd_images/IG_Figure1.png" alt="architecture" %} -->
-{% include image.html file="async_img_sd_images/stable_diffusion_architecture_diagram.jpg" alt="architecture" %}
+{% include image.html file="async_img_sd_images/arch-diagram.png" alt="architecture" %}
 
 *Figure 1: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS architecture*
 
