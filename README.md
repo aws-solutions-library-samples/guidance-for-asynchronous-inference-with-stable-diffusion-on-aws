@@ -2,7 +2,7 @@
 
 Implementing a fast scaling and low cost Stable Diffusion inference solution with serverless and containers on AWS
 
-[Stable Diffusion](https://aws.amazon.com/what-is/stable-diffusion/) is a popular open source project for generating images using Generative AI. Building a scalable and cost efficient ML Inference solution is a common challenge that many AWS customers are facing.
+[Stable Diffusion](https://aws.amazon.com/what-is/stable-diffusion/) is a popular open source project for generating images using Generative AI. Building a scalable and cost efficient Machine Learning (ML) Inference solution is a common challenge that many AWS customers are facing.
 This project shows how to use serverless architcture and container services to build an end-to-end low cost, rapidly scaling asyncronous image generation architecture. This repo contains the sample code and CDK deployment scripts that will help you to deploy this solution in a few steps.
 
 ## Features
@@ -18,27 +18,22 @@ This project shows how to use serverless architcture and container services to b
 
 <!-- img src="./low-latency-high-bandwidth-updated-architecture.jpg" width="90%" -->
 <div align="center">
-<img src="docs/arch-diagram.png" width="80%">
+<img src="docs/stable-diffusion-reference-architecture-updated.png" width="80%">
 <br/>
-Figure 1: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS architecture
+Figure 1: Asynchronous Image Generation with Stable Diffusion Web UI on AWS architecture
 </div>
 
 ### Architecture steps
 
 1. An application sends the prompt to [Amazon API Gateway](https://aws.amazon.com/api-gateway/) that acts as an endpoint for the overall Guidance, including authentication. [AWS Lambda](https://aws.amazon.com/lambda/) function validates the requests, publishes them to the designated [Amazon Simple Notification Service](https://aws.amazon.com/sns/) (Amazon SNS) topic, and immediately returns a response.
 2. Amazon SNS publishes the message to [Amazon Simple Queue Service](https://aws.amazon.com/sqs/) (Amazon SQS) queues. Each message contains a Stable Diffusion (SD) runtime name attribute and will be delivered to the queues with matching SD runtime.
-3. In the [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/) (Amazon EKS) cluster, the previously deployed open source Kubernetes Event Driven Auto-Scaler (KEDA) scales up new pods to process the incoming messages from SQS model processing queues.
-4. In the Amazon EKS cluster, Karpenter, an open source Kubernetes compute auto-scaler, launches new compute nodes based on GPU [Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/) (Amazon EC2) instances (such as G4, G5, and P4) to schedule pending pods. The instances use pre-cached SD Runtime images and are based on [Bottlerocket OS](https://aws.amazon.com/bottlerocket/) for fast boot. The instance can be launched with on-demand or [spot](https://aws.amazon.com/ec2/spot) pricing model.
+3. In the [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/) (Amazon EKS) cluster, the previously deployed open source [Kubernetes Event Driven Auto-Scaler (KEDA)](https://keda.sh) scales up new pods to process the incoming messages from SQS model processing queues.
+4. In the Amazon EKS cluster, the previously deployed open source Kubernetes auto-scaler, [Karpenter](https://karpenter.sh), launches new compute nodes based on GPU [Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/) (Amazon EC2) instances (such as g4, g5, and p4) to schedule pending pods. The instances use pre-cached SD Runtime images and are based on [Bottlerocket OS](https://aws.amazon.com/bottlerocket/) for fast boot. The instance can be launched with on-demand or [spot](https://aws.amazon.com/ec2/spot) pricing model.
 5. Stable Diffusion Runtimes load ML model files from [Amazon Simple Storage Service](https://aws.amazon.com/efs/) (Amazon S3) via [Mountpoint for Amazon S3 CSI Driver](https://github.com/awslabs/mountpoint-s3-csi-driver) on runtime initialization or on demand.
-6. Queue agents (a program created for this Guidance) receive messages from SQS model processing queues and convert them to inputs for SD Runtime APIs calls.
-7. Queue agents call SD Runtime APIs, receive and decode responses, and save the generated images to Amazon S3 buckets.
-8. Queue agents send notifications to the designated SNS topic from the pods, and the user receives notifications from SNS.
+6. Queue agents (software component created for this Guidance) receive messages from SQS model processing queues and convert them to inputs for SD Runtime APIs calls.
+7. Queue agents call SD Runtime APIs, receive and decode responses, and save the generated images to designated Amazon S3 buckets.
+8. Queue agents send notifications to the designated SNS topic from the pods,  user receives notifications from SNS and can access images in S3 buckets.
 
-## Deployment Documentation
-
-Please see detailed Implementation Guides here *TO BE UPDATED WITH LIVE IG LINKS* :
-- [English](https://implementationguides.kits.eventoutfitters.aws.dev/async-img-sd-0122/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
-- [Chinese](https://implementationguides.kits.eventoutfitters.aws.dev/async-img-zh-0822/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
 
 ### AWS services in this Guidance
 
@@ -48,9 +43,9 @@ Please see detailed Implementation Guides here *TO BE UPDATED WITH LIVE IG LINKS
 |[Amazon Virtual Private Cloud - VPC](https://aws.amazon.com/vpc/)| Core Service - network security layer |
 |[Amazon Elastic Compute Cloud - EC2](https://aws.amazon.com/ec2/)| Core Service - EC2 instance power On Demand and Spot based EKS compute node groups for running container workloads|
 |[Amazon Elastic Container Registry - ECR](https://aws.amazon.com/ecr/)|Core service - ECR registry is used to host the container images and Helm charts|
-|[Amazon Simple Storage Service S3](https://aws.amazon.com/s3/)|Core service - Object storage for users' ETL assets from GitHub|
-|[Amazon API Gateway](https://aws.amazon.com/api-gateway/)| Core service - endpoint for backend application|
-|[AWS Lambda](https://aws.amazon.com/lambda/)| Core service - validates the requests, publishes them to the designated |
+|[Amazon Simple Storage Service S3](https://aws.amazon.com/s3/)|Core service - Object storage for users' ETL assets from GitHub and Model files|
+|[Amazon API Gateway](https://aws.amazon.com/api-gateway/)| Core service - endpoint for all user requests|
+|[AWS Lambda](https://aws.amazon.com/lambda/)| Core service - validates the requests, publishes them to the designated queues |
 |[Amazon Simple Queue Service](https://aws.amazon.com/sqs/)| Core service - provides asynchronous event handling |
 |[Amazon Simple Notification Service](https://aws.amazon.com/sns/)| Core service - provides model specific event processing  |
 |[Amazon CloudWatch](https://aws.amazon.com/cloudwatch/)|Auxiliary service - provides observability for core services  |
@@ -61,7 +56,7 @@ Please see detailed Implementation Guides here *TO BE UPDATED WITH LIVE IG LINKS
 You are responsible for the cost of the AWS services used while running this Guidance. As of April 2024, the cost for running this
 Guidance with the default settings in the US West (Oregon) is approximately for one month and generating one million images would cost approximately **$436.72** (excluding free tiers).
 
-We recommend creating a [budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-create.html) through [AWS Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
+We recommend creating a [budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-create.html) through [AWS Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help monitor and manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
 
 The main services and their pricing for usage related to the number of images are listed below (per one million images):
 
@@ -92,6 +87,12 @@ The fixed costs unrelated to the number of images, with the main services and th
 
 Please note that thise are estimated costs for reference only. The actual cost may vary depending on the model you use, task parameters, current Spot instance pricing, and other factors.
 
+## Deployment Documentation
+
+Please see detailed Implementation Guides here:  *NB! TO BE UPDATED WITH LIVE IG LINKS UPON PUBLICATION* :
+- [English](https://implementationguides.kits.eventoutfitters.aws.dev/async-img-sd-0122/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
+- [Chinese](https://implementationguides.kits.eventoutfitters.aws.dev/async-img-zh-0822/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
+  
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
