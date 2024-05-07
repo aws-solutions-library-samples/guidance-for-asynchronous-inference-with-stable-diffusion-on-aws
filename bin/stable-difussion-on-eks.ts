@@ -27,7 +27,7 @@ const props = parse(file)
 if (validateConfig(props)) {
   const dataPlaneStack = new DataPlaneStack(app, props.stackName, props, {
     env: env,
-    description: "(SO9306) - Guidance for asynchronous image generation with Stable Diffusion on AWS ["
+    description: "Guidance for Asynchronous Image Generation with Stable Diffusion on AWS (SO9306)"
   });
 } else {
   console.log("Deployment failed due to failed validation. Please check and try again.")
