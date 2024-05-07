@@ -85,14 +85,14 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 
 ### 工作流
 
-1. 用户将请求（模型，Prompt等）发送业务应用，业务应用将请求发送至 [Amazon API Gateway](https://aws.amazon.com/api-gateway/){:target="_blank"} 提供的API端点。请求通过[AWS Lambda](https://aws.amazon.com/lambda/){:target="_blank"}进行校验，并投送至  [Amazon Simple Notification Service](https://aws.amazon.com/sns/){:target="_blank"} (Amazon SNS) 主题，并立即获得返回。
+1. 用户将请求（模型，Prompt等）发送业务应用，业务应用将请求发送至 [Amazon API Gateway](https://aws.amazon.com/api-gateway/){:target="_blank"} 提供的API端点。请求通过[AWS Lambda](https://aws.amazon.com/lambda/){:target="_blank"}进行校验，并投送至 [Amazon Simple Notification Service](https://aws.amazon.com/sns/){:target="_blank"} (Amazon SNS) 主题，并立即获得返回。
 2. Amazon SNS 根据请求中的运行时名称，将请求投送至对应运行时的 [Amazon Simple Queue Service](https://aws.amazon.com/sqs/){:target="_blank"} (Amazon SQS) 队列。
 3. 在 [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/){:target="_blank"} (Amazon EKS) 集群中，已经部署的Kubernetes Event Driven Auto-Scaler (KEDA) 会根据队列内消息数量扩充运行时的副本数。
 4. 在Amazon EKS 集群中，Karpenter 会启动新的[Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/){:target="_blank"} 实例以承载新的副本，这些实例运行 [Bottlerocket OS](https://aws.amazon.com/bottlerocket/){:target="_blank"} 操作系统，采用[Spot](https://aws.amazon.com/ec2/spot)/On-demand混合购买方式，且通过EBS快照预载Stable Diffusion运行时的容器镜像。
 5. Stable Diffusion 运行时启动，或模型切换时会通过 [Mountpoint for Amazon S3 CSI Driver](https://github.com/awslabs/mountpoint-s3-csi-driver){:target="_blank"} ，直接从 [Amazon Simple Storage Service](https://aws.amazon.com/efs/){:target="_blank"} (Amazon S3)存储桶中加载模型
 6. Queue Agent 会从 Amazon SQS 队列里接收任务，并发送给 Stable Diffusion 运行时生成图像
 7. 生成的图片由 Queue Agent 存储至 Amazon S3 存储桶中。
-8. 完成通知投送至 Amazon SNS 主题，SNS可将响应投送至SQS或其他目标中
+8. 完成通知投送至 Amazon SNS 主题，SNS可将响应投送至SQS或其他目标中。
 
 
 ### 使用的AWS服务

@@ -95,7 +95,7 @@ This section provides a reference implementation architecture diagram for the co
 5. Stable Diffusion Runtimes load ML model files from [Amazon Simple Storage Service](https://aws.amazon.com/efs/){:target="_blank"} (Amazon S3) via [Mountpoint for Amazon S3 CSI Driver](https://github.com/awslabs/mountpoint-s3-csi-driver){:target="_blank"} on runtime initialization or on demand.
 6. Queue agents (a program created for this Guidance) receive messages from SQS model processing queues and convert them to inputs for SD Runtime APIs calls.
 7. Queue agents call SD Runtime APIs, receive and decode responses, and save the generated images to Amazon S3 buckets.
-8. Queue agents send notifications to the designated SNS topic from the pods and the application receives notifications from the corresponding SQS queue.
+8. Queue agents send notifications to the designated SNS topic, and the user receives notifications from SNS.
 
 ### AWS services in this Guidance
 
