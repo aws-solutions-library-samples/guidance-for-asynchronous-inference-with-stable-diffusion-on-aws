@@ -15,6 +15,7 @@ metadata:
   {{- end }}
 data:
   AWS_DEFAULT_REGION: {{ quote .Values.global.awsRegion }}
+  RUNTIME_NAME: {{ quote .Values.global.stackName }}
   SQS_QUEUE_URL: {{ quote .Values.runtime.queueAgent.sqsQueueUrl }}
   S3_BUCKET: {{ quote .Values.runtime.queueAgent.s3Bucket }}
   SNS_TOPIC_ARN: {{ quote .Values.runtime.queueAgent.snsTopicArn }}
