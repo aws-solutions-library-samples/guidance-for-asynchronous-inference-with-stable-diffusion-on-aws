@@ -104,16 +104,11 @@ fi
 
 # Step 3: Create EBS Snapshot
 
-printf "Step 3: Creating EBS snapshot for faster launching... \n"
+printf "Step 3: Creating EBS snapshot for faster launching...(This step will last for 15-30 min) \n"
 if [ -z "$SNAPSHOT_ID" ]; then
   cd "${SCRIPTPATH}"/..
   git submodule update --init --recursive
-  if [[ "$RUNTIME_TYPE" == "sdwebui" ]] ; then
-    SNAPSHOT_ID=$(utils/bottlerocket-images-cache/snapshot.sh -r "${AWS_DEFAULT_REGION}" -q ${SDWEBUI_IMAGE},${QUEUE_AGENT_IMAGE})
-  fi
-  if [[ ${RUNTIME_TYPE} == "comfyui" ]]; then
-    SNAPSHOT_ID=$(utils/bottlerocket-images-cache/snapshot.sh -r "${AWS_DEFAULT_REGION}" -q ${COMFYUI_IMAGE},${QUEUE_AGENT_IMAGE})
-  fi
+  SNAPSHOT_ID=$(utils/bottlerocket-images-cache/snapshot.sh -r "${AWS_DEFAULT_REGION}" -q ${SDWEBUI_IMAGE},${COMFYUI_IMAGE},${QUEUE_AGENT_IMAGE})
 else
   printf "Existing snapshot ID detected, skipping... \n"
 fi
