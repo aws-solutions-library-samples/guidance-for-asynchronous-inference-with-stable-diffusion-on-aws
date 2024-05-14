@@ -64,7 +64,7 @@ The main services and their pricing for usage related to the number of images ar
 |-----------|------------|------------|------------|------------|
 | Amazon EC2 | g5.2xlarge instance, Spot instance per hour  | 416.67 | \$ 0.4968 | \$ 207 |
 | Amazon API Gateway | Per 1M REST API requests  | 1 | \$ 3.50 | \$ 3.50 |
-| AWS Lambda | Per GB-second  | 12,500 | \$ 0.0000166667 | \$ 0.21 |
+| AWS Lambda | Per GB-second  | 12,50 | \$ 0.0000166667 | \$ 0.21 |
 | AWS Lambda | Per 1M requests  | 1 | \$ 0.20 | \$ 0.20 |
 | Amazon SNS | Per 1M requests  | 2 | \$ 0.50 | \$ 0.50 |
 | Amazon SNS | Data transfer per GB  | 7.62\**  | \$ 0.09 | \$ 0.68 |
@@ -89,9 +89,9 @@ Please note that thise are estimated costs for reference only. The actual cost m
 
 ## Deployment Documentation
 
-Please see detailed Implementation Guides here:  *NB! TO BE UPDATED WITH LIVE IG LINKS UPON PUBLICATION* :
-- [English](https://implementationguides.kits.eventoutfitters.aws.dev/async-img-sd-0122/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
-- [Chinese](https://implementationguides.kits.eventoutfitters.aws.dev/async-img-zh-0822/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
+Please see detailed Implementation Guides here: 
+- [English](https://aws-solutions-library-samples.github.io/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
+- [Chinese](https://aws-solutions-library-samples.github.io/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
   
 ## Security
 
