@@ -6,8 +6,8 @@ kubectl_version='1.29.0'
 helm_version='3.10.1'
 yq_version='4.30.4'
 s5cmd_version='2.2.2'
-node_version='20.11.1'
-cdk_version='2.115.0'
+node_version='20.13.1'
+cdk_version='2.133.0'
 
 download () {
   url=$1
@@ -95,8 +95,8 @@ if which node > /dev/null
     download "https://nodejs.org/dist/v{$node_version}/node-v{$node_version}-linux-x64.tar.xz" "node.tar.xz"
     sudo mkdir -p /usr/local/lib/nodejs
     sudo tar -xJf node.tar.xz -C /usr/local/lib/nodejs
-    export PATH="/usr/local/lib/nodejs/node-$node_version-linux-x64/bin:$PATH"
-    printf "export PATH=\"/usr/local/lib/nodejs/node-$node_version-linux-x64/bin:\$PATH\"" >> ~/.bash_profile
+    export PATH="/usr/local/lib/nodejs/node-v{$node_version}-linux-x64/bin:$PATH"
+    printf "export PATH=\"/usr/local/lib/nodejs/node-v{$node_version}-linux-x64/bin:\$PATH\"" >> ~/.bash_profile
     source ~/.bash_profile
 fi
 
