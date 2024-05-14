@@ -104,7 +104,7 @@ def main():
         for message in received_messages:
             with xray_recorder.in_segment(runtime_name+"-queue-agent") as segment:
                 # Retrieve x-ray trace header from SQS message
-                if "AWSTraceHeader" in message.attributes:
+                if "AWSTraceHeader" in message.attributes.keys():
                     traceHeaderStr = message.attributes['AWSTraceHeader']
                     sqsTraceHeader = TraceHeader.from_header_str(traceHeaderStr)
                     # Update current segment to link with SQS
