@@ -35,7 +35,7 @@ aws_default_region = os.getenv("AWS_DEFAULT_REGION")
 sqs_queue_url = os.getenv("SQS_QUEUE_URL")
 sns_topic_arn = os.getenv("SNS_TOPIC_ARN")
 s3_bucket = os.getenv("S3_BUCKET")
-
+runtime_name = os.getenv("RUNTIME_NAME", "")
 api_base_url = ""
 
 # Check current runtime type
@@ -102,14 +102,15 @@ def main():
         received_messages = sqs_action.receive_messages(queue, 1, SQS_WAIT_TIME_SECONDS)
 
         for message in received_messages:
-            with xray_recorder.in_segment('Queue-Agent') as segment:
+            with xray_recorder.in_segment(runtime_name+"-queue-agent") as segment:
                 # Retrieve x-ray trace header from SQS message
-                traceHeaderStr = message.attributes['AWSTraceHeader']
-                sqsTraceHeader = TraceHeader.from_header_str(traceHeaderStr)
-                # Update current segment to link with SQS
-                segment.trace_id = sqsTraceHeader.root
-                segment.parent_id = sqsTraceHeader.parent
-                segment.sampled = sqsTraceHeader.sampled
+                if "AWSTraceHeader" in message.attributes.keys():
+                    traceHeaderStr = message.attributes['AWSTraceHeader']
+                    sqsTraceHeader = TraceHeader.from_header_str(traceHeaderStr)
+                    # Update current segment to link with SQS
+                    segment.trace_id = sqsTraceHeader.root
+                    segment.parent_id = sqsTraceHeader.parent
+                    segment.sampled = sqsTraceHeader.sampled
 
                 # Process received message
                 try:
@@ -180,6 +181,7 @@ def print_env() -> None:
     logger.info(f'SNS_TOPIC_ARN={sns_topic_arn}')
     logger.info(f'S3_BUCKET={s3_bucket}')
     logger.info(f'RUNTIME_TYPE={runtime_type}')
+    logger.info(f'RUNTIME_NAME={runtime_name}')
 
 def signalHandler(signum, frame):
     global shutdown
