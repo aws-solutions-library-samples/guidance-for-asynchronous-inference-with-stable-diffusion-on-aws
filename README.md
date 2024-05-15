@@ -91,7 +91,7 @@ Please note that thise are estimated costs for reference only. The actual cost m
 
 Please see detailed Implementation Guides here: 
 - [English](https://aws-solutions-library-samples.github.io/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
-- [Chinese](https://aws-solutions-library-samples.github.io/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
+- [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
   
 ## Security
 
