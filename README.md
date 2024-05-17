@@ -20,7 +20,7 @@ This project shows how to use serverless architcture and container services to b
 <div align="center">
 <img src="docs/stable-diffusion-reference-architecture-updated.png" width="80%">
 <br/>
-Figure 1: Asynchronous Image Generation with Stable Diffusion Web UI on AWS architecture
+Figure 1: Asynchronous Image Generation with Stable Diffusion on AWS reference architecture
 </div>
 
 ### Architecture steps
