@@ -54,7 +54,7 @@ Figure 1: Asynchronous Image Generation with Stable Diffusion on AWS reference a
 ### Cost
 
 You are responsible for the cost of the AWS services used while running this Guidance. As of April 2024, the cost for running this
-Guidance with the default settings in the US West (Oregon) is approximately for one month and generating one million images would cost approximately **$436.72** (excluding free tiers).
+Guidance with the default settings in the US West (Oregon) is approximately for one month and generating one million images would cost approximately **$436.72** as illustrated in the two sample tables below (excluding free tiers).
 
 We recommend creating a [budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-create.html) through [AWS Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help monitor and manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
 
@@ -90,8 +90,8 @@ Please note that thise are estimated costs for reference only. The actual cost m
 ## Deployment Documentation
 
 Please see detailed Implementation Guides here: 
-- [English](https://aws-solutions-library-samples.github.io/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
-- [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/aiml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
+- [English](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
+- [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
   
 ## Security
 
