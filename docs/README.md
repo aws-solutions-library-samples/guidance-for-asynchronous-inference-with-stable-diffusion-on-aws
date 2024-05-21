@@ -6,7 +6,7 @@ This folder contains the documentation code for the guidance.
 
 The doc uses [Jekyll](https://jekyllrb.com/) with [Just the Docs](https://just-the-docs.com/) theme.
 
-Assuming [Jekyll] and [Bundler] are installed on your computer, you can preview the doc by the following:
+Assuming [Jekyll](https://jekyllrb.com/) and [Bundler](https://bundler.io/) are installed on your computer, you can preview the doc by the following:
 
 1. Run `bundle install`.
 2. Change your working directory to language variant (`zh` for Simplified Chinese, and `en` for English)
