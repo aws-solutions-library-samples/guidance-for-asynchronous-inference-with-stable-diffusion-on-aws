@@ -89,11 +89,33 @@ Please note that thise are estimated costs for reference only. The actual cost m
 
 ## Deployment Documentation
 
-Please see detailed Implementation Guides here: 
+Please see detailed guidance Implementation Guides here: 
 - [English](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
 - [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
   
 ## Security
+
+When you build systems on AWS infrastructure, security responsibilities are shared between you and AWS. This [shared responsibility model](https://aws.amazon.com/compliance/shared-responsibility-model/) reduces your operational burden because AWS operates, manages, and
+controls the components, including host operating systems, the virtualization layer, and the physical security of the facilities in
+which the services operate. For more information about AWS security, visit [AWS Cloud Security](http://aws.amazon.com/security/).
+
+### IAM Roles
+AWS Identity and Access Management (IAM) roles allow AWS customers to assign granular access policies and permissions to AWS services and users in the cloud.
+
+This guidance creates separate IAM roles and grants permissions for the following components:
+1. Amazon EKS cluster, including
+  * Creating and operating the cluster
+  * Compute node groups
+  * Nodes created by Karpenter
+  * Pods running in the cluster, including
+    * &nbsp;&nbsp;&nbsp;&nbsp; Karpenter
+    * &nbsp;&nbsp;&nbsp;&nbsp; KEDA
+    * &nbsp;&nbsp;&nbsp;&nbsp; Fluent Bit
+    * &nbsp;&nbsp;&nbsp;&nbsp; Stable Diffusion runtimes
+2. AWS Lambda functions
+3. Amazon API Gateway
+
+This guidance uses IAM roles for internal user access control, following the principle of least privilege, ensuring that each component can only access authorized components and maintaining application workload isolation.
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
