@@ -1,0 +1,26 @@
+entries:
+- title: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS
+  folders:
+    - title: 简介
+      url: '#简介'
+      output: web
+
+    - title: 架构概览
+      url: '#架构概览'
+      output: web
+
+    - title: 费用预估
+      url: '#费用预估'
+      output: web
+
+    - title: 部署解决方案
+      url: '#部署解决方案'
+      output: web
+
+    - title: 使用指南
+      url: '#使用指南'
+      output: web
+
+    - title: 删除解决方案
+      url: '#删除解决方案'
+      output: web

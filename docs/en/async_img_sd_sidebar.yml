@@ -1,0 +1,42 @@
+entries:
+- title: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS
+  folders:
+    - title: Overview
+      url: '#overview'
+      output: web 
+
+    - title: Architecture Overview
+      url: '#architecture-overview'
+      output: web 
+
+    - title: Cost
+      url: '#cost'
+      output: web
+
+    - title: Security
+      url: '#security'
+      output: web      
+
+    - title: Deploy the Guidance
+      url: '#deploy-the-guidance'
+      output: web
+
+    - title: Usage Guide
+      url: '#usage-guide'
+      output: web
+
+    - title: Uninstall the guidance
+      url: '#uninstall-the-guidance'
+      output: web
+
+    - title: Related resources
+      url: '#related-resources'
+      output: web
+
+    - title: Contributors
+      url: '#contributors'
+      output: web
+
+    - title: Notices
+      url: '#notices'
+      output: web

@@ -1,0 +1,11 @@
+theme: just-the-docs
+
+callouts:
+  highlight:
+    color: yellow
+  note:
+    color: purple
+  new:
+    color: green
+  warning:
+    color: red

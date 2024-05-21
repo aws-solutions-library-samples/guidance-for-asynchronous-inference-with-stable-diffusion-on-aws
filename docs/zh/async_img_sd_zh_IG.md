@@ -3,10 +3,10 @@ title: 在AWS上快速部署基于Stable Diffusion的异步图像生成解决方
 description: "该指南介绍了如何在 AWS 上使用无服务器和容器解决方案，实施快速扩展和低成本的Stable Diffusion图像生成解决方案。该指南包含方案简介，架构，部署和使用步骤。该指南面向对图像生成感兴趣，希望部署该解决方案的解决方案架构师，DevOps工程师，云工程师等人员。"
 published: true
 sidebar: async_img_sd_zh_sidebar
-permalink: aiml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html
-tags:
+permalink: ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html
+tags: aiml 
 layout: page
----
+--- 
 
 ---
 
@@ -79,9 +79,9 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 ### 架构图
 本节提供了本指南所部署组件的参考架构图。
 
-{% include image.html file="async_img_sd_zh_images/arch-diagram.png" alt="architecture" %}
+{% include image.html file="async_img_sd_zh_images/stable-diffusion-reference-architecture-updated.png" alt="architecture" %}
 
-*Figure 1: Guidance for Asynchronous Image Generation with Stable Diffusion on AWS architecture*
+*Figure 1: Asynchronous Image Generation with Stable Diffusion on AWS reference architecture*
 
 ### 工作流
 
@@ -285,8 +285,8 @@ AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问
 运行以下命令以获取源代码和部署脚本：
 
 ```bash
-git clone --recursive https://github.com/aws-solutions-library-samples/guidance-for-asynchronous-inference-with-stable-diffusion-webui-on-aws
-cd guidance-for-asynchronous-inference-with-stable-diffusion-webui-on-aws
+git clone --recursive https://github.com/aws-solutions-library-samples/guidance-for-asynchronous-inference-with-stable-diffusion-on-aws
+cd guidance-for-asynchronous-inference-with-stable-diffusion-on-aws
 ```
 
 ### 快速开始
@@ -700,7 +700,7 @@ cd utils/bottlerocket-images-cache
 
 5. 其他详细设置（可选）
 
-    如您需要对运行时进行详细配置，请参考[配置项](https://github.com/aws-solutions-library-samples/guidance-for-asynchronous-inference-with-stable-diffusion-webui-on-aws/blob/main/src/charts/sd_on_eks/values.yaml)。
+    如您需要对运行时进行详细配置，请参考[配置项](https://github.com/aws-solutions-library-samples/guidance-for-asynchronous-inference-with-stable-diffusion-on-aws/blob/main/src/charts/sd_on_eks/values.yaml)。
 
 
 **开始部署**
@@ -1401,7 +1401,7 @@ npx cdk destroy
 
 -   Bingjiao Yu, Container Specialist SA
 -   Harold Sun, Sr. GCR Serverless SSA
--   Daniel Zilberman, Sr. SA,  Tech Solutions team
+-   Daniel Zilberman, Sr. SA  Tech Solutions team
 
 **感谢以下代码贡献者:**
 - Anbei Zhao, Sr. Solutions Architect
