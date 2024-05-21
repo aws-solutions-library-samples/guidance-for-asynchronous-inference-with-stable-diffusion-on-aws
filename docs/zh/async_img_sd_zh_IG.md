@@ -4,9 +4,9 @@ description: "该指南介绍了如何在 AWS 上使用无服务器和容器解�
 published: true
 sidebar: async_img_sd_zh_sidebar
 permalink: ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html
-tags: aiml 
+tags: aiml
 layout: page
---- 
+---
 
 ---
 
@@ -959,7 +959,8 @@ Stable Diffusion的基本用法，输入Prompt，可以生成对应图像。
 
 #### 请求格式
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 
 ```json-doc
@@ -1003,7 +1004,8 @@ v1alpha1
 
 #### 响应格式
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1013,7 +1015,8 @@ v1alpha1
 }
 ```
 
-**v1alpha1**
+v1alpha1
+{: .label .label-blue }
 
 ```json-doc
 {
@@ -1055,7 +1058,8 @@ Stable Diffusion的基本用法，输入Prompt和参考图像，可以生成与�
 
 #### 请求格式
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1079,7 +1083,8 @@ Stable Diffusion的基本用法，输入Prompt和参考图像，可以生成与�
 }
 ```
 
-**v1alpha1**
+v1alpha1
+{: .label .label-blue }
 
 ```json-doc
 {
@@ -1099,7 +1104,8 @@ Stable Diffusion的基本用法，输入Prompt和参考图像，可以生成与�
 
 #### 响应格式
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1109,7 +1115,8 @@ Stable Diffusion的基本用法，输入Prompt和参考图像，可以生成与�
 }
 ```
 
-**v1alpha1**
+v1alpha1
+{: .label .label-blue }
 
 ```json-doc
 {
@@ -1150,7 +1157,8 @@ Stable Diffusion的基本用法，输入Prompt和参考图像，可以生成与�
 
 #### 请求格式
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1238,7 +1246,8 @@ ComfyUI提供工作流编排功能，可以在界面上使用多种节点编排�
 
 #### 请求格式
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1259,7 +1268,8 @@ ComfyUI提供工作流编排功能，可以在界面上使用多种节点编排�
 
 #### 响应格式
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
