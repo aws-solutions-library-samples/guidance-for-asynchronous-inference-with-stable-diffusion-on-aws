@@ -1,4 +1,4 @@
-# Guidance for Asynchronous Inference with Stable Diffusion on AWS
+# [Guidance for Asynchronous Inference with Stable Diffusion on AWS](https://aws.amazon.com/solutions/guidance/asynchronous-image-generation-with-stable-diffusion-on-aws/)
 
 Implementing a fast scaling and low cost Stable Diffusion inference solution with serverless and containers on AWS
 
@@ -89,10 +89,10 @@ Please note that thise are estimated costs for reference only. The actual cost m
 
 ## Deployment Documentation
 
-Please see detailed guidance Implementation Guides here: 
+Please see detailed guidance Implementation Guides here:
 - [English](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
 - [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
-  
+
 ## Security
 
 When you build systems on AWS infrastructure, security responsibilities are shared between you and AWS. This [shared responsibility model](https://aws.amazon.com/compliance/shared-responsibility-model/) reduces your operational burden because AWS operates, manages, and

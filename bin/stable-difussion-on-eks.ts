@@ -3,7 +3,6 @@ import { App, Aspects } from 'aws-cdk-lib';
 import DataPlaneStack from "../lib/dataPlane";
 import { parse } from 'yaml'
 import * as fs from 'fs'
-import { AwsSolutionsChecks } from 'cdk-nag';
 import { validateConfig } from '../lib/utils/validateConfig';
 
 const app = new App();
@@ -32,5 +31,3 @@ if (validateConfig(props)) {
 } else {
   console.log("Deployment failed due to failed validation. Please check and try again.")
 }
-
-// Aspects.of(app).add(new AwsSolutionsChecks());
