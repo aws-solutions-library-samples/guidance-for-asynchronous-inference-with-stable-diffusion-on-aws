@@ -48,10 +48,12 @@ spec:
           value: "true"
         - name: CONFIG_FILE
           value: "/tmp/config.json"
+        {{- if .Values.runtime.queueAgent.commandArguments }}
         - name: EXTRA_CMD_ARG
           value: {{ .Values.runtime.inferenceApi.commandArguments }}
+        {{- end }}
         {{- if .Values.runtime.inferenceApi.extraEnv }}
-        {{- toYaml .Values.runtime.inferenceApi.extraEnv | nindent 10 }}
+        {{- toYaml .Values.runtime.inferenceApi.extraEnv | nindent 8 }}
         {{- end }}
         resources:
           {{- toYaml .Values.runtime.inferenceApi.resources | nindent 10 }}
@@ -74,7 +76,7 @@ spec:
             name: {{ include "sdchart.fullname" . }}-queue-agent-config
         env:
         {{- if .Values.runtime.queueAgent.extraEnv }}
-        {{- toYaml .Values.runtime.queueAgent.extraEnv | nindent 10 }}
+        {{- toYaml .Values.runtime.queueAgent.extraEnv | nindent 8 }}
         {{- end }}
         {{- if .Values.runtime.queueAgent.XRay.enabled }}
         - name: AWS_XRAY_DAEMON_ADDRESS
