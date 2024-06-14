@@ -127,7 +127,7 @@ export default class DataPlaneStack {
 // Generate SD Runtime Addon for runtime
 dataplaneProps.modelsRuntime.forEach((val, idx, array) => {
   const sdRuntimeParams: SDRuntimeAddOnProps = {
-    ModelBucketArn: dataplaneProps.modelBucketArn,
+    modelBucketArn: dataplaneProps.modelBucketArn,
     outputSns: blueprints.getNamedResource("outputSNSTopic") as sns.ITopic,
     inputSns: blueprints.getNamedResource("inputSNSTopic") as sns.ITopic,
     outputBucket: blueprints.getNamedResource("outputS3Bucket") as s3.IBucket,

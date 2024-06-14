@@ -29,5 +29,8 @@ spec:
   storageClassName: "{{ .Values.runtime.persistence.storageClass }}"
       {{- end }}
       {{- end }}
+  {{- if .Values.runtime.persistence.existingVolume }}
+  volumeName: "{{ .Values.runtime.persistence.existingVolume }}"
+  {{- end }}
 
 {{- end }}

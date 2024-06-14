@@ -12,7 +12,7 @@ import { createNamespace }  from "../utils/namespace"
 export interface SDRuntimeAddOnProps extends blueprints.addons.HelmAddOnUserProps {
   type: string,
   targetNamespace?: string,
-  ModelBucketArn?: string,
+  modelBucketArn?: string,
   outputSns?: sns.ITopic,
   inputSns?: sns.ITopic,
   outputBucket?: s3.IBucket
@@ -32,8 +32,7 @@ export const defaultProps: blueprints.addons.HelmAddOnProps & SDRuntimeAddOnProp
   repository: 'oci://public.ecr.aws/bingjiao/charts/sd-on-eks',
   values: {
     global: {
-      awsRegion: cdk.Aws.REGION,
-      stackName: cdk.Aws.STACK_NAME,
+      awsRegion: cdk.Aws.REGION
     }
   },
   type: "sdwebui"
@@ -84,7 +83,7 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
     }
 
     const modelBucket = s3.Bucket.fromBucketAttributes(cluster.stack, 'ModelBucket' + this.id, {
-      bucketArn: this.options.ModelBucketArn!
+      bucketArn: this.options.modelBucketArn!
     });
 
     modelBucket.grantRead(runtimeSA);
@@ -102,62 +101,12 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
         'AWSXRayDaemonWriteAccess',
       ))
 
-    // Static provisioning resource
-    const pv = cluster.addManifest(this.id+"S3ModelStoragePv", {
-      "apiVersion": "v1",
-      "kind": "PersistentVolume",
-      "metadata": {
-        "name": this.id+"-s3-model-storage-pv"
-      },
-      "spec": {
-        "capacity": {
-          "storage": "2Ti"
-        },
-        "accessModes": [
-          "ReadWriteMany"
-        ],
-        "mountOptions": [
-          "allow-delete",
-          "allow-other",
-          "file-mode=777",
-          "dir-mode=777"
-        ],
-        "csi": {
-          "driver": "s3.csi.aws.com",
-          "volumeHandle": "s3-csi-driver-volume",
-          "volumeAttributes": {
-            "bucketName": modelBucket.bucketName
-          }
-        }
-      }
-    })
-    pv.node.addDependency(ns)
-
-    const pvc = cluster.addManifest(this.id+"S3ModelStoragePvc", {
-      "apiVersion": "v1",
-      "kind": "PersistentVolumeClaim",
-      "metadata": {
-        "name": this.id+"-s3-model-storage-pvc",
-        "namespace": this.props.namespace
-      },
-      "spec": {
-        "resources": {
-          "requests": {
-            "storage": "2Ti"
-          }
-        },
-        "accessModes": [
-          "ReadWriteMany"
-        ],
-        "storageClassName": "",
-        "volumeName": this.id+"-s3-model-storage-pv"
-      }
-    })
-    pvc.node.addDependency(ns)
-
     const nodeRole = clusterInfo.cluster.node.findChild('karpenter-node-role') as iam.IRole
 
     var generatedValues = {
+      global: {
+        runtime: this.id
+      },
       runtime: {
         type: this.options.type,
         serviceAccountName: runtimeSA.serviceAccountName,
@@ -168,7 +117,11 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
         },
         persistence: {
           enabled: true,
-          existingClaim: this.id+"-s3-model-storage-pvc"
+          storageClass: "-",
+          s3: {
+            enabled: true,
+            modelBucket: modelBucket.bucketName
+          }
         }
       },
       karpenter: {
@@ -283,9 +236,6 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
     const values = lodash.merge(this.props.values, this.options.extraValues, generatedValues)
 
     const chart = this.addHelmChart(clusterInfo, values, true);
-
-    chart.node.addDependency(pv)
-    chart.node.addDependency(pvc)
 
     return Promise.resolve(chart);
   }
