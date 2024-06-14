@@ -355,7 +355,8 @@ cd deploy
 
 请按以下步骤创建存储桶：
 
-**AWS管理控制台**:
+AWS管理控制台
+{: .label .label-blue }:
 
 * 打开 [Amazon S3 控制台](https://console.aws.amazon.com/s3/)。
 * 在左侧导航窗格中，选择 **Buckets**（桶）。
@@ -366,7 +367,8 @@ cd deploy
 为确保模型读取速度，请确保该存储桶与您的解决方案部署在同一个 AWS 区域。如您希望在多个区域部署解决方案的多个副本，请在每个区域单独创建一个存储桶。
 * 选择 **Create Bucket**（创建桶）
 
-**AWS CLI**:
+AWS CLI
+{: .label .label-green }:
 
 运行以下命令以创建存储桶。将`<bucket name>`替换为您希望的存储桶名称，`us-east-1`替换成您准备部署解决方案的 AWS 区域：
 ```bash
@@ -402,7 +404,8 @@ aws s3api create-bucket --bucket <bucket name> --region us-east-1
 
 请按以下步骤将模型上传至S3存储桶中：
 
-**AWS管理控制台**:
+AWS管理控制台
+{: .label .label-blue }:
 
 * 打开 [Amazon S3 控制台](https://console.aws.amazon.com/s3/)。
 * 在左侧导航窗格中，选择 **Buckets**（桶）。
@@ -416,7 +419,8 @@ aws s3api create-bucket --bucket <bucket name> --region us-east-1
 * 选择 **Add files** （添加文件），选择待上传的模型文件。
 * 选择 **Upload**。在上传过程中请不要关闭浏览器。
 
-**AWS CLI**:
+AWS CLI
+{: .label .label-green }:
 
 运行以下命令以将模型文件上传至存储桶。将`<model name>`替换成为您的模型文件名，`<folder>`替换为模型类型， `<bucket name>`替换为您希望的存储桶名称：
 ```bash
@@ -435,7 +439,7 @@ aws s3 cp <model name> s3://<bucket name>/<folder>/
 {: .warning-title }
 > 运行时选择
 >
-> 您需要自行提供Stable Diffusion运行时镜像。您可以从[计划部署](./considerations.md#选择-stable-diffusion-运行时)获取支持的Stable Diffusion运行时。
+> 您需要自行提供Stable Diffusion运行时镜像。您可以从[计划部署](#stable-diffusion-运行时)获取支持的Stable Diffusion运行时。
 
 {: .new-title }
 > 预构建镜像
@@ -473,14 +477,16 @@ docker build -t queue-agent:latest src/backend/queue_agent/
 >
 > Amazon ECR需要在推送前预先创建镜像仓库。
 >
-> **AWS CLI**
+> AWS CLI
+{: .label .label-green }
 >
 > 运行下列命令以创建：
 > ```bash
 > aws ecr create-repository --repository-name sd-on-eks/queue-agent
 > ```
 >
-> **AWS管理控制台**
+> AWS管理控制台
+{: .label .label-blue }
 >
 > * 打开位于 https://console.aws.amazon.com/ecr/ 的 Amazon ECR 控制台。
 > * 选择**开始使用**。
@@ -514,14 +520,16 @@ docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/sd-on-eks/queue-agent:l
 >
 > Amazon ECR需要在推送前预先创建镜像仓库。
 >
-> **AWS CLI**：
+> AWS CLI
+{: .label .label-green }：
 >
 > 运行下列命令以创建：
 > ```bash
 > aws ecr create-repository --repository-name sd-on-eks/charts/sd-on-eks
 > ```
 >
-> **AWS管理控制台**：
+> AWS管理控制台
+{: .label .label-blue }：
 >
 >
 > * 打开位于 https://console.aws.amazon.com/ecr/ 的 Amazon ECR 控制台。
@@ -736,9 +744,10 @@ sdoneksStack.ConfigCommand = aws eks update-kubeconfig --name sdoneksStack --reg
 
 但由于中国的网络环境特殊，会受到如下限制：
 
-* 需要自行构建容器镜像，或将标准镜像复制到中国区域的ECR上。不建议使用ECR Public的镜像。
+* 需要自行构建容器镜像，或将标准镜像复制到中国区域的ECR上。
 * 部分组件的Helm Chart位于Github上，在中国区部署时，有几率无法获取到Helm Chart，如该故障发生，需要重试部署。
 * 无法自动从Hugging Face或Github上下载模型，需要手工下载模型并上传至S3存储桶。
+* 根据中国法律法规，未获得互联网内容提供商 (ICP) 备案的域名无法以匿名方式对外提供服务。受限于此，本解决方案在中国区域无法通过API Gateway直接访问。您可以通过[自定义域名](https://docs.amazonaws.cn/apigateway/latest/developerguide/how-to-custom-domains.html)将一个已获得备案的域名关联至API Gateway，也可以直接向SNS发送消息以调用该解决方案。
 
 #### 在中国区部署的步骤
 
@@ -875,7 +884,8 @@ STACK_NAME=sdoneksStack RUNTIME_TYPE=sdwebui ./run.sh
 
 解决方案的API端点可以从CloudFormation的输出中获取：
 
-**AWS管理控制台**
+AWS管理控制台
+{: .label .label-blue }
 
 * 进入 [AWS CloudFormation 控制台](https://console.aws.amazon.com/cloudformation/home)
 * 选择 **Stacks** （堆栈）
@@ -883,7 +893,8 @@ STACK_NAME=sdoneksStack RUNTIME_TYPE=sdwebui ./run.sh
 * 选择 **Output** （输出）
 * 记录 **FrontApiEndpoint** 项的值（格式为  `https://abcdefghij.execute-api.ap-southeast-1.amazonaws.com/prod/`）
 
-**AWS CLI**
+AWS CLI
+{: .label .label-green }
 
 运行以下命令以获取 API端点：
 
@@ -913,14 +924,16 @@ https://abcdefghij.execute-api.ap-southeast-1.amazonaws.com/prod/v1alpha2
 
 出于安全考虑，所有请求需要附加API Key。通过以下步骤获取API Key：
 
-**AWS管理控制台**
+AWS管理控制台
+{: .label .label-blue }
 
 * 进入 [Amazon API Gateway 控制台](https://console.aws.amazon.com/apigateway)
 * 选择 **API Keys**
 * 在列表中，选择名称类似于 `SdOnEK-defau-abcdefghij`（或您自定义的名称）的API Key
 * 记录 **API key** 项的值
 
-**AWS CLI**
+AWS CLI
+{: .label .label-green }
 
 运行以下命令以获取API Key：
 
@@ -947,6 +960,58 @@ echo $(aws cloudformation describe-stacks --stack-name SdOnEKSStack --output tex
 关于限流的原理详细信息，请参考[Throttle API requests for better throughput](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html){:target="_blank"}
 
 如您需要修改该设置，请在`config.yaml`中修改`APIGW`段的相关内容。您也可以在API Gateway中修改对应Usage Plan。
+
+#### 直接向SNS主题发送消息
+
+如您的网络环境无法访问API Gateway终端节点，或您希望将您的应用通过SNS与本解决方案集成，您可以直接向输入的SNS主题发送消息。但由于发送的消息不会经过Lambda验证，故您需要严格遵循消息格式中的格式，否则Queue Agent会在无返回的情况下将消息丢弃。
+
+**查找SNS主题的名称**
+
+您可以从CloudFormation的输出中找到 SNS 主题 ARN：
+
+AWS管理控制台
+{: .label .label-blue }
+
+* 进入 [AWS CloudFormation 控制台](https://console.aws.amazon.com/cloudformation/home)
+* 选择 **Stacks** （堆栈）
+* 在列表中，选择 **SdOnEKSStack** （或您自定义的名称）
+* 选择 **Output** （输出）
+* 记录 **sdNotificationLambdaARN** 项的值（格式为  `arn:aws:sns:us-east-1:123456789012:SdOnEKSStack-sdNotificationLambdaCfn-abcdefgh`）
+
+AWS CLI
+{: .label .label-green }
+
+运行以下命令以获取 SNS 主题 ARN：
+
+```bash
+aws cloudformation describe-stacks --stack-name SdOnEKSStack --output text --query 'Stacks[0].Outputs[?OutputKey==`sdNotificationOutputArn`].OutputValue'
+```
+
+**消息格式**
+
+消息需要包含`runtime: <运行时名称>`属性，否则消息无法被路由到对应运行时的SQS队列，会直接被SNS丢弃。
+
+向SNS发送的消息正文格式与`v1alpha2`格式类似，但不包含最外层的`task`项。示例如下：
+
+```json-doc
+{
+  "metadata": {
+    "id": "test-t2i", // 必要，任务ID
+    "runtime": "sdruntime", // 必要，任务使用的运行时名称
+    "tasktype": "text-to-image", // 必要，任务类型，需要与路由到的运行时相匹配
+    "prefix": "output", // 必要，输出文件在S3桶中的前缀（即目录名）
+    "context": "" // 可选，可放置任何信息，会在回调中包含
+  },
+  "content": { // 此处内容将直接传入运行时
+  ...
+  }
+}
+```
+
+**发送消息**
+
+您可以通过控制台或SDK的方式向SNS主题发送消息。关于具体发送消息的方式，请参考[Amazon SNS文档](https://docs.aws.amazon.com/sns/latest/dg/sns-publishing.html)。
+
 
 ### 文生图 (SD Web UI)
 
@@ -1295,7 +1360,8 @@ Stable Diffusion on Amazon EKS方案采用异步推理模式，当图片生成�
 
 您可以从CloudFormation的输出中找到生成的 SNS 主题 ARN：
 
-**AWS管理控制台**
+AWS管理控制台
+{: .label .label-blue }
 
 
 * 进入 [AWS CloudFormation 控制台](https://console.aws.amazon.com/cloudformation/home)
@@ -1304,7 +1370,8 @@ Stable Diffusion on Amazon EKS方案采用异步推理模式，当图片生成�
 * 选择 **Output** （输出）
 * 记录 **sdNotificationOutputArn** 项的值（格式为  `arn:aws:sns:us-east-1:123456789012:SdOnEKSStack-sdNotificationOutputCfn-abcdefgh`）
 
-**AWS CLI**
+AWS CLI
+{: .label .label-green }
 
 
 运行以下命令以获取 SNS 主题 ARN：
@@ -1315,7 +1382,8 @@ aws cloudformation describe-stacks --stack-name SdOnEKSStack --output text --que
 
 如需接收消息，您需要将您的消息接收端（如Amazon SQS队列，HTTP 终端节点等）作为**订阅**添加到该SNS主题中。
 
-**AWS管理控制台**
+AWS管理控制台
+{: .label .label-blue }
 
 
 * 在左侧导航窗格中，选择**Subscriptions** （订阅）。
@@ -1326,7 +1394,8 @@ aws cloudformation describe-stacks --stack-name SdOnEKSStack --output text --que
     * 对于 **Endpoint**（终端节点），输入您的接收端地址，例如电子邮件地址或 Amazon SQS 队列的 ARN。
 * 选择 **Create subscription**（创建订阅）
 
-**AWS CLI**
+AWS CLI
+{: .label .label-green }
 
 请参考[Use Amazon SNS with the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-services-sns.html#cli-subscribe-sns-topic) 添加对该主题的订阅。
 
@@ -1382,7 +1451,8 @@ aws cloudformation describe-stacks --stack-name SdOnEKSStack --output text --que
 
 您可以通过CDK CLI或AWS 管理控制台删除该解决方案。
 
-**AWS管理控制台**
+AWS管理控制台
+{: .label .label-blue }
 
 - 进入 [AWS CloudFormation 控制台](https://console.aws.amazon.com/cloudformation/home)
 - 选择 **Stacks** （堆栈）

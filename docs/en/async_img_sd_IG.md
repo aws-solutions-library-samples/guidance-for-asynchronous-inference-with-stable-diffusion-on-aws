@@ -5,7 +5,7 @@ its reference architecture and components, considerations for planning the deplo
 name to Amazon Web Services (AWS).
 This guide is intended for solutions architects, business decision makers, DevOps engineers, data scientists, and cloud professionals who
 want to implement 'Guidance for Asynchronous Image Generation with Stable Diffusion on AWS' in their environment."
-published: true 
+published: true
 sidebar: async_img_sd_sidebar
 permalink: ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws.html
 tags: aiml
@@ -66,7 +66,7 @@ This component includes an API endpoint based on Amazon API Gateway and a task d
 * Requests are validated by AWS Lambda and published to an Amazon SNS topic.
 * Amazon SNS publishes the requests to the corresponding SQS queue based on the runtime name specified in the request.
 
-### Stable Diffusion runtime 
+### Stable Diffusion runtime
 
 This component includes the Stable Diffusion runtime on Amazon EKS, supporting elastic scaling based on requests.
 
@@ -144,7 +144,7 @@ The fixed costs unrelated to the number of images, with the main services and th
 | Amazon EC2 | m5.large instance, On-Demand instance per hour  | 1440 | \$ 0.0960 | \$ 138.24 |
 | **Total, month** | &nbsp; | &nbsp; | &nbsp; | **\$210.24** |
 
-\* Calculated based on an average request duration of 1.5 seconds and the average Spot instance pricing across all Availability Zones in the US West (Oregon) Region from January 29, 2024, to April 28, 2024. 
+\* Calculated based on an average request duration of 1.5 seconds and the average Spot instance pricing across all Availability Zones in the US West (Oregon) Region from January 29, 2024, to April 28, 2024.
 <br/>
 \*\* Calculated based on an average request size of 16 KB.
 <br/>
@@ -371,7 +371,8 @@ The models required by this guidance should be stored in an S3 bucket beforehand
 
 Follow these steps to create the S3 bucket:
 
-**AWS Management Console**:
+AWS Management Console
+{: .label .label-blue }:
 
 1. Open the [Amazon S3 console](https://console.aws.amazon.com/s3/){:target="_blank"}.
 2. In the left navigation pane, choose **Buckets**.
@@ -421,7 +422,8 @@ Currently, `.safetensors` and `.ckpt` model formats are supported. If you downlo
 
 Follow these steps to upload the models to the S3 bucket:
 
-**AWS Management Console**:
+AWS Management Console
+{: .label .label-blue }:
 
 1. Open the [Amazon S3 console](https://console.aws.amazon.com/s3/){:target="_blank"}.
 2. In the left navigation pane, choose **Buckets**.
@@ -435,7 +437,8 @@ Follow these steps to upload the models to the S3 bucket:
 6. Choose **Add files** and select the model files you want to upload.
 7. Choose **Upload**. Do not close the browser during the upload process.
 
-**AWS CLI**:
+AWS CLI
+{: .label .label-green }:
 
 Run the following command to upload the model files to the bucket. Replace `<model name>` with your model file name, `<folder>`, with the model type, and `<bucket name>` with your desired bucket name:
 ```bash
@@ -492,14 +495,16 @@ docker build -t queue-agent:latest src/backend/queue_agent/
 >
 > Amazon ECR requires creating the image repository before pushing.
 >
-> **AWS CLI**
+> AWS CLI
+{: .label .label-green }
 >
 > Run the following command to create:
 > ```bash
 > aws ecr create-repository --repository-name sd-on-eks/queue-agent
 > ```
 >
-> **AWS Management Console**:
+> AWS Management Console
+{: .label .label-blue }:
 >
 > * Open the [Amazon ECR console](https://console.aws.amazon.com/ecr/){:target="_blank"}.
 > * Choose **Get started**.
@@ -532,14 +537,16 @@ Some components in this guidance are deployed using a Helm Chart. In general, yo
 >
 > Amazon ECR requires creating an image repository before pushing.
 >
-> **AWS CLI**:
+> AWS CLI
+{: .label .label-green }:
 >
 > Run the following command to create:
 > ```bash
 > aws ecr create-repository --repository-name sd-on-eks/charts/sd-on-eks
 > ```
 >
-> **AWS Management Console**:
+> AWS Management Console
+{: .label .label-blue }:
 >
 > * Open the [Amazon ECR console](https://console.aws.amazon.com/ecr/){:target="_blank"}.
 > * Choose **Get started**.
@@ -752,9 +759,10 @@ This guidance supports deployment in AWS China Regions.
 
 However, due to the special network environment in China, there are the following limitations:
 
-* You need to build the container image yourself or copy the standard image to ECR in the China Region. It is not recommended to use images from ECR Public.
+* You need to build the container image yourself or copy the pre-built image to ECR in the China Region.
 * Some components' Helm Charts are hosted on GitHub, and there may be issues retrieving the Helm Charts when deploying in China Regions; retries are recommended when this issue occurs.
 * You cannot automatically download models from Hugging Face or GitHub and need to manually download the models and upload them to the S3 bucket.
+* According to Chinese laws and regulations, you must obtain an Internet Content Provider (ICP) license to service API requests via Amazon API Gateway. As a result, this solution is not directly accessible through API Gateway in China. You can associate a domain name that has been associated with a valid ICP license to the API Gateway via [custom domain names](https://docs.amazonaws.cn/en_us/apigateway/latest/developerguide/how-to-custom-domains.html) You can also send messages directly to SNS to invoke the solution.
 
 #### Steps for Deploying in China Regions
 
@@ -891,7 +899,8 @@ When sending requests, follow these rules:
 
 The API endpoint of the guidance can be obtained from the CloudFormation outputs:
 
-**AWS Management Console**
+AWS Management Console
+{: .label .label-blue }
 
 * Go to the [AWS CloudFormation console](https://console.aws.amazon.com/cloudformation/home){:target="_blank"}
 * Choose **Stacks**
@@ -899,7 +908,8 @@ The API endpoint of the guidance can be obtained from the CloudFormation outputs
 * Choose **Output**
 * Record the value of the **FrontApiEndpoint** item (in the format `https://abcdefghij.execute-api.ap-southeast-1.amazonaws.com/prod/`)
 
-**AWS CLI**
+AWS CLI
+{: .label .label-green }
 
 Run the following command to get the API endpoint:
 
@@ -928,14 +938,16 @@ Please refer to the detailed documentation for each request type for the specifi
 
 For security reasons, all requests must include an API Key. Follow these steps to obtain the API Key:
 
-**AWS Management Console**
+AWS Management Console
+{: .label .label-blue }
 
 * Go to the [Amazon API Gateway console](https://console.aws.amazon.com/apigateway){:target="_blank"}
 * Choose **API Keys**
 * In the list, select the API Key with a name similar to `SdOnEK-defau-abcdefghij` (or your custom name)
 * Record the value of the **API key** item
 
-**AWS CLI**
+AWS CLI
+{: .label .label-green }
 
 Run the following command to get the API Key:
 
@@ -963,6 +975,57 @@ For more details on throttling, refer to [Throttle API requests for better throu
 
 If you need to modify these settings, modify the `APIGW` section in `config.yaml`. You can also modify the corresponding Usage Plan in API Gateway.
 
+#### Sending messages directly to Amazon SNS topic
+
+If your network environment does not have access to the API Gateway endpoints, or if you want to invoke the solution via Amazon SNS, you can send messages directly to the SNS topic. However, since the message will not be validated by Lambda function, you need to strictly follow the formatting in the message format, or the Queue Agent will discard the message silently.
+
+**Find SNS topic**
+
+You can find the SNS topic ARN in the CloudFormation outputs:
+
+AWS Management Console
+{: .label .label-blue }
+
+* Go to the [AWS CloudFormation console](https://console.aws.amazon.com/cloudformation/home){:target="_blank"}
+* Choose **Stacks**
+* In the list, select **sdoneksStack** (or your custom name)
+* Choose **Output**
+* Record the value of the **sdNotificationLambdaARN** item (in the format `arn:aws:sns:us-east-1:123456789012:sdoneksStack-sdNotificationLambdaCfn-abcdefgh`)
+
+AWS CLI
+{: .label .label-green }
+
+Run the following command to get the SNS topic ARN:
+
+```bash
+aws cloudformation describe-stacks --stack-name sdoneksStack --output text --query 'Stacks[0].Outputs[?OutputKey==`sdNotificationLambdaARN`].OutputValue'
+```
+
+**Message schema**
+
+The message needs to contain the `runtime: <runtime name>` attribute, otherwise the message will not be routed to the SQS queue of the corresponding runtime, and will be discarded by SNS.
+
+The schema of the message body sent to SNS is similar to the `v1alpha2` API schema, but does not contain the outermost `task` field. An example is shown below:
+
+```json-doc
+{
+  "metadata": {
+    "id": "test-t2i", // Required, task ID
+    "runtime": "sdruntime", // Required, the name of the runtime used for the task
+    "tasktype": "text-to-image", // Required, task type. Ensure task type fits runtime type.
+    "prefix": "output", // Required, the prefix (directory name) for the output file in the S3 bucket
+    "context": "" // Optional, can contain any information, will be included in the callback
+  },
+  "content": { // Content will be pass to runtime
+  ...
+  }
+}
+```
+
+**Send Message**
+
+You can send messages to SNS topic by AWS management console or AWS SDK. Please refer to the [Amazon SNS documentation](https://docs.aws.amazon.com/sns/latest/dg/sns-publishing.html) for details.
+
 ### Text-to-Image (SD Web UI)
 
 {: .highlight }
@@ -974,7 +1037,8 @@ The content in the request will be passed directly to the SD Web UI, but if ther
 
 #### Request schema
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1017,7 +1081,8 @@ v1alpha1
 
 #### Response schema
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1027,7 +1092,8 @@ v1alpha1
 }
 ```
 
-**v1alpha1**
+v1alpha1
+{: .label .label-blue }
 
 ```json-doc
 {
@@ -1068,7 +1134,8 @@ The content in the request will be passed directly to SD Web UI, but if there ar
 
 #### Request Schema
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1092,7 +1159,8 @@ The content in the request will be passed directly to SD Web UI, but if there ar
 }
 ```
 
-**v1alpha1**
+v1alpha1
+{: .label .label-blue }
 
 ```json-doc
 {
@@ -1112,7 +1180,8 @@ The content in the request will be passed directly to SD Web UI, but if there ar
 
 #### Response schema
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1122,7 +1191,8 @@ The content in the request will be passed directly to SD Web UI, but if there ar
 }
 ```
 
-**v1alpha1**
+v1alpha1
+{: .label .label-blue }
 
 ```json-doc
 {
@@ -1163,7 +1233,8 @@ For a single image, use the super-resolution model to upscale the image.
 
 #### Request Schema
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1197,7 +1268,8 @@ For a single image, use the super-resolution model to upscale the image.
 
 #### Response schema
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1249,7 +1321,8 @@ After designing the workflow in the interface, follow these steps to export it:
 
 #### Request Schema
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1270,7 +1343,8 @@ After designing the workflow in the interface, follow these steps to export it:
 
 #### Response schema
 
-**v1alpha2**
+v1alpha2
+{: .label .label-green }
 
 ```json-doc
 {
@@ -1296,7 +1370,8 @@ Refer to the [Amazon SNS documentation](https://docs.aws.amazon.com/sns/latest/d
 
 You can find the generated SNS topic ARN in the CloudFormation outputs:
 
-**AWS Management Console**
+AWS Management Console
+{: .label .label-blue }
 
 * Go to the [AWS CloudFormation console](https://console.aws.amazon.com/cloudformation/home){:target="_blank"}
 * Choose **Stacks**
@@ -1304,7 +1379,8 @@ You can find the generated SNS topic ARN in the CloudFormation outputs:
 * Choose **Output**
 * Record the value of the **sdNotificationOutputArn** item (in the format `arn:aws:sns:us-east-1:123456789012:sdoneksStack-sdNotificationOutputCfn-abcdefgh`)
 
-**AWS CLI**
+AWS CLI
+{: .label .label-green }
 
 Run the following command to get the SNS topic ARN:
 
@@ -1314,7 +1390,8 @@ aws cloudformation describe-stacks --stack-name sdoneksStack --output text --que
 
 To receive messages, you need to add your message receiver (such as an Amazon SQS queue, HTTP endpoint, etc.) as a **subscription** to this SNS topic.
 
-**AWS Management Console**:
+AWS Management Console
+{: .label .label-blue }:
 
 * In the left navigation pane, choose **Subscriptions**.
 * On the **Subscriptions** page, choose **Create subscription**.
@@ -1324,7 +1401,8 @@ To receive messages, you need to add your message receiver (such as an Amazon SQ
     * For **Endpoint**, enter the address of your receiver, such as an email address or the ARN of an Amazon SQS queue.
 * Choose **Create subscription**
 
-**AWS CLI**:
+AWS CLI
+{: .label .label-green }:
 
 [Use Amazon SNS with the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-services-sns.html#cli-subscribe-sns-topic){:target="_blank"} to add a subscription to this topic.
 
