@@ -43,7 +43,7 @@ Figure 1: Asynchronous Image Generation with Stable Diffusion on AWS reference a
 |[Amazon Virtual Private Cloud - VPC](https://aws.amazon.com/vpc/)| Core Service - network security layer |
 |[Amazon Elastic Compute Cloud - EC2](https://aws.amazon.com/ec2/)| Core Service - EC2 instance power On Demand and Spot based EKS compute node groups for running container workloads|
 |[Amazon Elastic Container Registry - ECR](https://aws.amazon.com/ecr/)|Core service - ECR registry is used to host the container images and Helm charts|
-|[Amazon Simple Storage Service S3](https://aws.amazon.com/s3/)|Core service - Object storage for users' ETL assets from GitHub and Model files|
+|[Amazon Simple Storage Service S3](https://aws.amazon.com/s3/)|Core service - Object storage for model files and generated image|
 |[Amazon API Gateway](https://aws.amazon.com/api-gateway/)| Core service - endpoint for all user requests|
 |[AWS Lambda](https://aws.amazon.com/lambda/)| Core service - validates the requests, publishes them to the designated queues |
 |[Amazon Simple Queue Service](https://aws.amazon.com/sqs/)| Core service - provides asynchronous event handling |
