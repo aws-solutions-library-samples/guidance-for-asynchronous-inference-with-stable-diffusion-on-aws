@@ -28,13 +28,9 @@ export const defaultProps: blueprints.addons.HelmAddOnProps & SDRuntimeAddOnProp
   name: 'sdRuntimeAddOn',
   namespace: 'sdruntime',
   release: 'sdruntime',
-  version: '1.1.0',
+  version: '1.1.1',
   repository: 'oci://public.ecr.aws/bingjiao/charts/sd-on-eks',
-  values: {
-    global: {
-      awsRegion: cdk.Aws.REGION
-    }
-  },
+  values: {},
   type: "sdwebui"
 }
 
@@ -105,6 +101,8 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
 
     var generatedValues = {
       global: {
+        awsRegion: cdk.Stack.of(cluster).region,
+        stackName: cdk.Stack.of(cluster).stackName,
         runtime: this.id
       },
       runtime: {
