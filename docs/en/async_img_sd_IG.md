@@ -310,6 +310,12 @@ cd guidance-for-asynchronous-inference-with-stable-diffusion-on-aws
 
 We provide a one-click deployment script for a quick start. The total deployment time is approximately 30 minutes.
 
+{: .warning-title }
+> Operation System
+>
+> This script only supports Linux with Bash as shell, and validated with Amazon Linux and Ubuntu. Windows, WSL (Windows Subsystem of Linux) and MacOS are not supported. You are recommended to use an EC2 instance or Cloud9 workspace to run the script. 
+
+
 #### One-click deployment
 
 Run the following command to deploy with the simplest settings:
