@@ -293,6 +293,12 @@ cd guidance-for-asynchronous-inference-with-stable-diffusion-on-aws
 
 我们提供了一键部署脚本以快速开始。总部署时间约为 30 分钟。
 
+{: .warning-title }
+> 操作系统限制
+>
+> 该脚本只可在以Bash为Shell的Linux操作系统上运行。该脚本在Amazon Linux和Ubuntu操作系统下验证通过。该脚本不可在Windows, WSL (Windows Subsystem of Linux) 和 MacOS 下运行。 我们建议您使用EC2实例或Cloud9工作空间来运行此脚本。
+
+
 #### 一键部署
 
 运行以下命令以使用最简设置快速部署：
