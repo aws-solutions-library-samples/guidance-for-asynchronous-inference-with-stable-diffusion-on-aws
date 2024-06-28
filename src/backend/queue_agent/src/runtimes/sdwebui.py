@@ -7,7 +7,7 @@ import logging
 import time
 import traceback
 
-from requests.exceptions import ReadTimeout
+from requests.exceptions import ReadTimeout, HTTPError
 from aws_xray_sdk.core import xray_recorder
 from jsonpath_ng import parse
 from modules import http_action, misc
@@ -201,7 +201,10 @@ def switch_model(api_base_url: str, name: str) -> str:
         # refresh then check from model list
         invoke_refresh_checkpoints(api_base_url)
         models = invoke_get_model_names(api_base_url)
-        invoke_unload_checkpoints(api_base_url)
+        try:
+            invoke_unload_checkpoints(api_base_url)
+        except HTTPError:
+            logger.info(f"No model is currently loaded.")
         if name in models:
             options = {}
             options["sd_model_checkpoint"] = name
