@@ -1413,6 +1413,7 @@ AWS CLI
 {
     "id": "task_id", // 任务ID
     "result": true, // true为成功完成，false为未成功完成
+    "runtime": "sdruntime", // 发送回调的运行时名称
     "image_url": [ // 生成图像的S3 URL，格式为 任务ID+4位随机码+图片序号，如有多张图片则所有图片链接均会附上
         "s3://outputbucket/output/test-t2i/test-t2i-abcd-1.png"
     ],

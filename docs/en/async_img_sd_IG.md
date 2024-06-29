@@ -313,7 +313,7 @@ We provide a one-click deployment script for a quick start. The total deployment
 {: .warning-title }
 > Operation System
 >
-> This script only supports Linux with Bash as shell, and validated with Amazon Linux and Ubuntu. Windows, WSL (Windows Subsystem of Linux) and MacOS are not supported. You are recommended to use an EC2 instance or Cloud9 workspace to run the script. 
+> This script only supports Linux with Bash as shell, and validated with Amazon Linux and Ubuntu. Windows, WSL (Windows Subsystem of Linux) and MacOS are not supported. You are recommended to use an EC2 instance or Cloud9 workspace to run the script.
 
 
 #### One-click deployment
@@ -1420,6 +1420,7 @@ The guidance code will send task completion notifications to SNS in the followin
 {
     "id": "task_id", // Task ID
     "result": true, // true for successful completion, false for unsuccessful completion
+    "runtime": "sdruntime", // Sender name of runtime
     "image_url": [ // S3 URLs of the generated images, in the format of task ID + 4 random characters + image sequence number, all image links will be included if there are multiple images
         "s3://outputbucket/output/test-t2i/test-t2i-abcd-1.png"
     ],
