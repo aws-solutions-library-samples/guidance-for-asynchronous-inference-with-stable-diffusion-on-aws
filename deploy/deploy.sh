@@ -118,7 +118,7 @@ fi
 printf "Step 4: Start deploy... \n"
 aws iam create-service-linked-role --aws-service-name spot.amazonaws.com >/dev/null 2>&1 || true
 cd "${SCRIPTPATH}"/..
-sudo npm install
+npm install
 
 template="$(cat deploy/config.yaml.template)"
 eval "echo \"${template}\"" > config.yaml
