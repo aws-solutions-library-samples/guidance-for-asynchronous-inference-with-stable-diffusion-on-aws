@@ -1,4 +1,4 @@
-# [Guidance for Asynchronous Inference with Stable Diffusion on AWS](https://aws.amazon.com/solutions/guidance/asynchronous-image-generation-with-stable-diffusion-on-aws/)
+# Guidance for Asynchronous Inference with Stable Diffusion on AWS
 
 Implementing a fast scaling and low cost Stable Diffusion inference solution with serverless and containers on AWS
 
@@ -87,12 +87,6 @@ The fixed costs unrelated to the number of images, with the main services and th
 
 Please note that thise are estimated costs for reference only. The actual cost may vary depending on the model you use, task parameters, current Spot instance pricing, and other factors.
 
-## Deployment Documentation
-
-Please see detailed guidance Implementation Guides here:
-- [English](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
-- [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
-
 ## Security
 
 When you build systems on AWS infrastructure, security responsibilities are shared between you and AWS. This [shared responsibility model](https://aws.amazon.com/compliance/shared-responsibility-model/) reduces your operational burden because AWS operates, manages, and
@@ -116,6 +110,51 @@ This guidance creates separate IAM roles and grants permissions for the followin
 3. Amazon API Gateway
 
 This guidance uses IAM roles for internal user access control, following the principle of least privilege, ensuring that each component can only access authorized components and maintaining application workload isolation.
+
+## Deployment Documentation
+
+Please see detailed guidance Implementation Guides here:
+- [English](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
+- [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
+  
+### Troubleshooting
+
+**ATTENTION! Currently there is an issue with auutomated deployment of the guidance sample code failing due to EBS snapshot exceeding current limit of 50 GB**
+The workaround for now is to comment out the COMFYUI_Image from the caching command on line 111 of [./deploy/deploy.sh](https://github.com/aws-solutions-library-samples/guidance-for-asynchronous-inference-with-stable-diffusion-on-aws/blob/main/deploy/deploy.sh) script:
+
+```bash
+# Step 3: Create EBS Snapshot
+
+printf "Step 3: Creating EBS snapshot for faster launching...(This step will last for 15-30 min) \n"
+if [ -z "$SNAPSHOT_ID" ]; then
+  cd "${SCRIPTPATH}"/..
+  git submodule update --init --recursive
+  # removing the ${COMFYUI_IMAGE} from snapshot to avoid issue with snapshot size > 50GB
+  SNAPSHOT_ID=$(utils/bottlerocket-images-cache/snapshot.sh -r "${AWS_DEFAULT_REGION}" -q ${SDWEBUI_IMAGE},${QUEUE_AGENT_IMAGE})
+else
+  printf "Existing snapshot ID detected, skipping... \n"
+fi
+
+# Step 4: Deploy
+
+printf "Step 4: Start deployment... \n"
+aws iam create-service-linked-role --aws-service-name spot.amazonaws.com >/dev/null 2>&1 || true
+cd "${SCRIPTPATH}"/..
+sudo npm install
+
+template="$(cat deploy/config.yaml.template)"
+eval "echo \"${template}\"" > config.yaml
+cdk bootstrap
+if [ ${DEPLOY} = true ] ; then
+  CDK_DEFAULT_REGION=${AWS_DEFAULT_REGION} cdk deploy --no-rollback --require-approval never
+  printf "Deploy complete. \n"
+else
+  printf "Please revise config.yaml and run 'cdk deploy --no-rollback --require-approval never' to deploy. \n"
+fi
+```
+That change will not create an EBS cache for **COMFYUI_IMAGE** and avoid breaking of the deployment pocess. There is an upcoming patch where EBS snapshot size will increase to 100GB to be released soon, after that the above workaround will not be necessary.
+
+## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
