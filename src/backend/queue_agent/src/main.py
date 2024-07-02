@@ -165,7 +165,8 @@ def main():
 
                 output_url = s3_action.upload_file(response["content"], s3_bucket, prefix, str(task_id)+"-"+rand, ".out")
 
-                sns_response = {'id': task_id,
+                sns_response = {"runtime": runtime_name,
+                                'id': task_id,
                                 'result': response["success"],
                                 'image_url': result,
                                 'output_url': output_url,

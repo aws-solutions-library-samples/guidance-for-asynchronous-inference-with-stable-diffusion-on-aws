@@ -43,7 +43,7 @@ Figure 1: Asynchronous Image Generation with Stable Diffusion on AWS reference a
 |[Amazon Virtual Private Cloud - VPC](https://aws.amazon.com/vpc/)| Core Service - network security layer |
 |[Amazon Elastic Compute Cloud - EC2](https://aws.amazon.com/ec2/)| Core Service - EC2 instance power On Demand and Spot based EKS compute node groups for running container workloads|
 |[Amazon Elastic Container Registry - ECR](https://aws.amazon.com/ecr/)|Core service - ECR registry is used to host the container images and Helm charts|
-|[Amazon Simple Storage Service S3](https://aws.amazon.com/s3/)|Core service - Object storage for users' ETL assets from GitHub and Model files|
+|[Amazon Simple Storage Service S3](https://aws.amazon.com/s3/)|Core service - Object storage for model files and generated image|
 |[Amazon API Gateway](https://aws.amazon.com/api-gateway/)| Core service - endpoint for all user requests|
 |[AWS Lambda](https://aws.amazon.com/lambda/)| Core service - validates the requests, publishes them to the designated queues |
 |[Amazon Simple Queue Service](https://aws.amazon.com/sqs/)| Core service - provides asynchronous event handling |
@@ -99,25 +99,7 @@ When you build systems on AWS infrastructure, security responsibilities are shar
 controls the components, including host operating systems, the virtualization layer, and the physical security of the facilities in
 which the services operate. For more information about AWS security, visit [AWS Cloud Security](http://aws.amazon.com/security/).
 
-### IAM Roles
-AWS Identity and Access Management (IAM) roles allow AWS customers to assign granular access policies and permissions to AWS services and users in the cloud.
-
-This guidance creates separate IAM roles and grants permissions for the following components:
-1. Amazon EKS cluster, including
-  * Creating and operating the cluster
-  * Compute node groups
-  * Nodes created by Karpenter
-  * Pods running in the cluster, including
-    * &nbsp;&nbsp;&nbsp;&nbsp; Karpenter
-    * &nbsp;&nbsp;&nbsp;&nbsp; KEDA
-    * &nbsp;&nbsp;&nbsp;&nbsp; Fluent Bit
-    * &nbsp;&nbsp;&nbsp;&nbsp; Stable Diffusion runtimes
-2. AWS Lambda functions
-3. Amazon API Gateway
-
-This guidance uses IAM roles for internal user access control, following the principle of least privilege, ensuring that each component can only access authorized components and maintaining application workload isolation.
-
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+For potential security issue, see [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
 

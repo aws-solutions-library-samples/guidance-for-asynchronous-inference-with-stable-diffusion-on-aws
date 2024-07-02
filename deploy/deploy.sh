@@ -108,7 +108,7 @@ printf "Step 3: Creating EBS snapshot for faster launching...(This step will las
 if [ -z "$SNAPSHOT_ID" ]; then
   cd "${SCRIPTPATH}"/..
   git submodule update --init --recursive
-  SNAPSHOT_ID=$(utils/bottlerocket-images-cache/snapshot.sh -r "${AWS_DEFAULT_REGION}" -q ${SDWEBUI_IMAGE},${COMFYUI_IMAGE},${QUEUE_AGENT_IMAGE})
+  SNAPSHOT_ID=$(utils/bottlerocket-images-cache/snapshot.sh -s 100 -r "${AWS_DEFAULT_REGION}" -q ${SDWEBUI_IMAGE},${COMFYUI_IMAGE},${QUEUE_AGENT_IMAGE})
 else
   printf "Existing snapshot ID detected, skipping... \n"
 fi
@@ -118,7 +118,7 @@ fi
 printf "Step 4: Start deploy... \n"
 aws iam create-service-linked-role --aws-service-name spot.amazonaws.com >/dev/null 2>&1 || true
 cd "${SCRIPTPATH}"/..
-sudo npm install
+npm install
 
 template="$(cat deploy/config.yaml.template)"
 eval "echo \"${template}\"" > config.yaml

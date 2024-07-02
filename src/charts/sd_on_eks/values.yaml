@@ -1,6 +1,7 @@
 global:
   awsRegion: us-west-2
   stackName: ""
+  runtime: ""
 
 karpenter:
   provisioner:
@@ -88,9 +89,13 @@ runtime:
   persistence:
     enabled: true
     existingClaim: ""
+    existingVolume: ""
     labels: {}
     annotations: {}
-    storageClass: s3-model-storage-sc
+    storageClass: ""
     size: 2Ti
     accessModes:
     - ReadWriteMany
+    s3:
+      enabled: true
+      modelBucket: ""
