@@ -12,7 +12,7 @@ export const defaultProps: blueprints.addons.HelmAddOnProps & s3CSIDriverAddOnPr
   name: 's3CSIDriverAddOn',
   namespace: 'kube-system',
   release: 's3-csi-driver-release',
-  version: 'v1.6.0',
+  version: 'v1.7.0',
   repository: 'https://awslabs.github.io/mountpoint-s3-csi-driver',
   s3BucketArn: ''
 }
