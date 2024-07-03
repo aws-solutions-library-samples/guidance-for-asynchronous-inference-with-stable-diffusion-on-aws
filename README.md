@@ -81,7 +81,7 @@ The fixed costs unrelated to the number of images, with the main services and th
 | Amazon EC2 | m5.large instance, On-Demand instance per hour  | 1440 | \$ 0.0960 | \$ 138.24 |
 | **Total, month** | &nbsp; | &nbsp; | &nbsp; | **\$210.24** |
 
-- \* Calculated based on an average request duration of 1.5 seconds and the average Spot instance pricing across all Availability Zones in the US West (Oregon) Region from January 29, 2024, to April 28, 2024.
+- \* Calculated based on an average request duration of 1.5 seconds and the average Spot instance pricing across all Availability Zones in the `us-west-2` (Oregon) Region from January 29, 2024, to April 28, 2024.
 - \*\* Calculated based on an average request size of 16 KB
 - \*\*\* Calculated based on an average image size of 150 KB, stored for 1 month.
 
@@ -89,7 +89,7 @@ Please note that thise are estimated costs for reference only. The actual cost m
 
 ## Deployment Documentation
 
-Please see detailed guidance Implementation Guides here:
+Please see detailed Implementation Guides here:
 - [English](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
 - [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
 
