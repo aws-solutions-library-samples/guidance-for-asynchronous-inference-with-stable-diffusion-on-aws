@@ -4,7 +4,10 @@ kind: PersistentVolume
 metadata:
   name: {{ include "sdchart.fullname" . }}-s3-model-volume
   annotations:
+  {{- if .Values.runtime.persistence.annotations }}
+  annotations:
   {{ toYaml .Values.runtime.persistence.annotations | indent 4 }}
+  {{- end }}
   labels:
   {{- include "sdchart.labels" . | nindent 4 }}
   {{- if .Values.runtime.labels }}
