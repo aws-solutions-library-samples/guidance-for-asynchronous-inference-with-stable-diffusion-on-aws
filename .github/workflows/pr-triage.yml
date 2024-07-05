@@ -22,8 +22,13 @@ jobs:
         uses: actions-cool/check-user-permission@v2
         with:
           username: ${{ steps.get-author.outputs.pr-author }}
-          require: admin
-      - name: Auto-approve if author is admin and contains only doc change
+          require: write
+      - name: Auto-approve for break glass PR
+        id: break-glass
+        if: ${{ (steps.author-permission.outputs.require-result == 'true') && (startsWith(github.event.pull_request.title, "[Break Glass]")) }}
+        uses: hmarr/auto-approve-action@v4
+      - name: Auto-approve if author is able to write and contains only doc change
+        id: doc-change
         if: steps.author-permission.outputs.require-result == 'true'
         uses: actions/github-script@v6
         with:
@@ -44,7 +49,7 @@ jobs:
                 pull_number: context.issue.number,
                 event: 'APPROVE'
               })
-              console.log('Auto-approved PR by admin author')
+              console.log('Auto-approved PR by author')
             } else {
               console.log('PR does not meet auto-approval criteria')
             }

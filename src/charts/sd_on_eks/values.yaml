@@ -33,7 +33,7 @@ karpenter:
       iops: 3000
       throughput: 125
     dataVolume:
-      volumeSize: 80Gi
+      volumeSize: 150Gi
       volumeType: gp3
       deleteOnTermination: true
       iops: 4000

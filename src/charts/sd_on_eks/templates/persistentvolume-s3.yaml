@@ -1,9 +1,10 @@
 {{- if and (.Values.runtime.persistence.enabled) (.Values.runtime.persistence.s3.enabled) }}
-
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: {{ include "sdchart.fullname" . }}-s3-model-volume
+  annotations:
+  {{- if .Values.runtime.persistence.annotations }}
   annotations:
   {{ toYaml .Values.runtime.persistence.annotations | indent 4 }}
   {{- end }}
