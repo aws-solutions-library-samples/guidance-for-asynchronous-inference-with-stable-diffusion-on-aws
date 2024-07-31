@@ -9,9 +9,7 @@ import traceback
 
 from requests.exceptions import ReadTimeout, HTTPError
 from aws_xray_sdk.core import xray_recorder
-from jsonpath_ng import parse
 from modules import http_action, misc
-
 
 logger = logging.getLogger("queue-agent")
 
@@ -249,24 +247,27 @@ def failed(task_id, exception):
         'info': ''
     }
 
-def download_image(body: dict) -> dict:
+def download_image(obj, path=""):
     """Search URL in object, and replace all URL with content of URL"""
-    jsonpath_expr = parse('$..*')
-    for match in jsonpath_expr.find(body):
-        value = match.value
-        if isinstance(value, str) and (value.startswith('http') or value.startswith('s3://')):
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            new_path = f"{path}.{key}" if path else key
+            obj[key] = download_image(value, new_path)
+    elif isinstance(obj, list):
+        for index, item in enumerate(obj):
+            new_path = f"{path}[{index}]"
+            obj[index] = download_image(item, new_path)
+    elif isinstance(obj, str):
+        if (obj.startswith('http') or obj.startswith('s3://')):
+            logger.info(f"Found URL {obj} in {path}, replacing... ")
             try:
-                # Get the JSONPath of the replaced value
-                jsonpath = str(match.full_path)
-                logger.info(f"Found URL {value} in {jsonpath}, replacing... ")
-
-                image_byte = http_action.get(value)
-                match.full_path.update(body, misc.encode_to_base64(image_byte))
-                logger.info(f"{jsonpath} replaced with content. ")
+                image_byte = misc.encode_to_base64(http_action.get(obj))
+                logger.info(f"Replaced {path} with content")
             except Exception as e:
-                print(f"Error fetching URL: {value}")
-                print(f"Error: {str(e)}")
-    return body
+                logger.error(f"Error fetching URL: {obj}")
+                logger.error(f"Error: {str(e)}")
+            return image_byte
+    return obj
 
 def post_invocations(response):
     img_bytes = []

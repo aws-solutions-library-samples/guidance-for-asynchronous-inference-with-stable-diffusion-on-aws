@@ -8,9 +8,8 @@
       "context": ""
     },
     "content": {
-      "alwayson_scripts": {
-        "image_link": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/diffusers/cat.png"
-      },
+      "alwayson_scripts": {},
+      "init_images": ["https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/diffusers/cat.png"],
       "prompt": "cat wizard, gandalf, lord of the rings, detailed, fantasy, cute, adorable, Pixar, Disney, 8k",
       "steps": 16,
       "width": 512,
