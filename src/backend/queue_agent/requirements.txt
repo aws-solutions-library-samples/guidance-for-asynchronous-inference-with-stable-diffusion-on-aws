@@ -3,7 +3,6 @@ aiohttp_client_cache>=0.11.0
 aws_xray_sdk==2.12.0
 boto3==1.33.2
 botocore==1.33.2
-jsonpath_ng>=1.6.1
 python_magic>=0.4.24
 Requests>=2.31.0
 requests_cache>=1.2.0
