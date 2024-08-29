@@ -25,7 +25,7 @@ jobs:
           require: write
       - name: Auto-approve for break glass PR
         id: break-glass
-        if: ${{ (steps.author-permission.outputs.require-result == 'true') && (startsWith(github.event.pull_request.title, "[Break Glass]")) }}
+        if: ${{ (steps.author-permission.outputs.require-result == 'true') && (startsWith(github.event.pull_request.title, '[Break Glass]')) }}
         uses: hmarr/auto-approve-action@v4
       - name: Auto-approve if author is able to write and contains only doc change
         id: doc-change
