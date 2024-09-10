@@ -40,7 +40,7 @@
       },
       "4": {
         "inputs": {
-          "ckpt_name": "v1-5-pruned-emaonly.safetensors"
+          "ckpt_name": "v2-1_768-ema-pruned.safetensors"
         },
         "class_type": "CheckpointLoaderSimple",
         "_meta": {

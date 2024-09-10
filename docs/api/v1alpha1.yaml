@@ -39,7 +39,7 @@ paths:
                   sd_model_checkpoint:
                     type: string
                     description: Selected model
-                    example: "v1-5-pruned-emaonly.safetensors"
+                    example: "v2-1_768-ema-pruned.safetensors"
                   output_location:
                     type: string
                     description: Location of output file
@@ -72,11 +72,11 @@ components:
                         type: string
                     sd_model_checkpoint:
                         description: Checkpoint used in the task
-                        example: "v1-5-pruned-emaonly.safetensors"
+                        example: "v2-1_768-ema-pruned.safetensors"
                         type: string
                     id_task:
                         description: Task ID
-                        example: "v1-5-pruned-emaonly.safetensors"
+                        example: "v2-1_768-ema-pruned.safetensors"
                         type: string
                     uid:
                         type: string
