@@ -38,6 +38,8 @@ s3_bucket = os.getenv("S3_BUCKET")
 runtime_name = os.getenv("RUNTIME_NAME", "")
 api_base_url = ""
 
+exp_callback_when_running = os.getenv("EXP_CALLBACK_WHEN_RUNNING", "")
+
 # Check current runtime type
 runtime_type = os.getenv("RUNTIME_TYPE", "").lower()
 
@@ -144,6 +146,14 @@ def main():
                     sqs_action.delete_message(message)
                     continue
 
+                if (exp_callback_when_running.lower() == "true"):
+                    sns_response = {"runtime": runtime_name,
+                                'id': task_id,
+                                'status': "running",
+                                'context': context}
+
+                    sns_action.publish_message(topic, json.dumps(sns_response))
+
                 # Start handling message
                 response = {}
 
@@ -165,9 +175,15 @@ def main():
 
                 output_url = s3_action.upload_file(response["content"], s3_bucket, prefix, str(task_id)+"-"+rand, ".out")
 
+                if response["success"]:
+                    status = "completed"
+                else:
+                    status = "failed"
+
                 sns_response = {"runtime": runtime_name,
                                 'id': task_id,
                                 'result': response["success"],
+                                'status': status,
                                 'image_url': result,
                                 'output_url': output_url,
                                 'context': context}
