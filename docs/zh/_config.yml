@@ -1,5 +1,7 @@
 theme: just-the-docs
 
+nav_enabled: true
+
 callouts:
   highlight:
     color: yellow

@@ -56,7 +56,7 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 2. 基于Amazon EKS和Amazon EC2加速计算实例的Stable Diffusion运行时
 3. 管理和维护组件
 
-### 任务调度和分发
+#### 任务调度和分发
 
 该组件包含基于Amazon API Gateway的API端点，和基于Amazon SNS，Amazon SQS的任务分发部分。
 
@@ -64,7 +64,7 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 * 请求通过Amazon Lambda进行校验，并投送至 Amazon SNS 主题
 * Amazon SNS根据请求中的运行时名称，将请求投送至对应运行时的SQS队列
 
-### Stable Diffusion 运行时
+#### Stable Diffusion 运行时
 
 该组件包含基于Amazon EKS的Stable Diffusion运行时，支持根据请求进行弹性伸缩。
 
@@ -113,39 +113,61 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 
 ## 费用预估
 
-您需要为使用该解决方案中包含的AWS服务付费。按2024年4月价格计算，在美国西部（俄勒冈）区域运行该解决方案一个月，且生成一百万张图片的价格约为（不含免费额度）**436.72** 美元。
+您需要为使用该解决方案中包含的AWS服务付费。按2024年9月价格计算，在美国西部（俄勒冈）区域使用`g6e.2xlarge`实例类型运行该解决方案一个月，且使用[Stable Diffusion XL](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)模型生成一百万张图片的价格约为（不含免费额度）**795.94** 美元。
 
 我们建议您在[AWS Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/){:target="_blank"} 上[创建预算](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-create.html){:target="_blank"} 以帮助管理成本。价格有可能改变。请参考对应的AWS服务定价页面以获取具体的价格。
+
+与此解决方案相关的费用含三部分：
+
+* 与实例类型及图像数量有关的浮动费用
+* 与图像数量有关的浮动费用
+* 与图像数量无关的固定费用
+
+与实例类型及图像数量有关的浮动费用，主要服务价格列表如下（按每百万张图片计）：
+
+按您在运行时配置中设置的实例类型不同，您只需在下列实例类型中选择**一种**：
+
+| **AWS 服务**  | **计费维度** | **每百万张图片所需数量 \[小时\] ** | **单价 \[USD\]** | **总价 \[USD\]**
+|:-----------|:------------|:------------|:------------|:------------|
+| Amazon EC2 | g6e.2xlarge 实例，Spot实例每小时价格  | 1002.78<sup>\#</sup> | \$ 0.5451* | \$ 585.70  |
+| Amazon EC2 | g6.2xlarge 实例，Spot实例每小时价格  | 2925.00<sup>\#</sup> | \$ 0.4777* | \$ 1,436.36 |
+| Amazon EC2 | g5.2xlarge 实例，Spot实例每小时价格  | 1002.78<sup>\#</sup> | \$ 0.4837* | \$ 1,185.18 |
 
 与图像数量有关的浮动费用，主要服务价格列表如下（按每百万张图片计）：
 
 | **AWS 服务**  | **计费维度** | **每百万张图片所需数量** | **单价 \[USD\]** | **总价 \[USD\]**
-|-----------|------------|------------|------------|------------|
-| Amazon EC2 | g5.2xlarge 实例，Spot实例每小时费用  | 416.67 | \$ 0.4968 | \$ 207 |
+|:-----------|:------------|:------------|:------------|:------------|
 | Amazon API Gateway | 每 1 百万个 REST API 请求  | 1 | \$ 3.50 | \$ 3.50 |
 | AWS Lambda | 每 GB 每秒  | 12,500 | \$ 0.0000166667 | \$ 0.21 |
 | AWS Lambda | 每 1 百万个请求  | 1 | \$ 0.20 | \$ 0.20 |
 | Amazon SNS | 每 1 百万个请求  | 2 | \$ 0.50 | \$ 0.50 |
-| Amazon SNS | 数据传输每 GB  | 7.62**  | \$ 0.09 | \$ 0.68 |
-| Amazon SQS | 每 1 百万个请求  | 2 | \$ 0.40 | \$ 0.80 |
+| Amazon SNS | 数据传输每 GB  | 5.72**  | \$ 0.09 | \$ 0.51 |
+| Amazon SQS | 每 1 百万个请求  | 3 | \$ 0.40 | \$ 1.20 |
 | Amazon S3 | 每 1 千个 PUT 请求  | 2,000 | \$ 0.005 | \$ 10.00 |
-| Amazon S3 | 每 GB 每月  | 143.05*** | \$ 0.023 | \$ 3.29
-| **小计，每 1 百万张图片** | &nbsp; | &nbsp; | &nbsp; | **\$ 226.18** |
+| Amazon S3 | 每 GB 每月  | 976.56*** | \$ 0.023 | \$ 22.46
+| **小计，每 1 百万张图片** | &nbsp; | &nbsp; | &nbsp; | **\$ 39.08** |
 
 与图像数量无关的固定费用，主要服务价格列表如下（按月计）：
 
 | **AWS 服务**  | **计费维度** | **每月所需数量** | **单价 \[USD\]** | **总价 \[USD\]**
-|-----------|------------|------------|------------|------------|
+|:-----------|:------------|:------------|:------------|:------------|
 | Amazon EKS | 集群  | 1 | \$ 72.00 | \$ 72.00 |
 | Amazon EC2 | m5.large 实例，按需实例每小时费用  | 1440 | \$ 0.0960 | \$ 138.24 |
 | **小计，每月** | &nbsp; | &nbsp; | &nbsp; | **\$ 210.24** |
 
-- \* 按每个请求耗时 1.5 秒计算，单价参照 2024 年 1 月 29 日 至 2024 年 4 月 28 日 美国西部（俄勒冈）区域所有可用区Spot实例价格之平均值
-- \*\* 按请求平均 16 KB 计算
-- \*\*\* 按图像平均 150 KB，存储 1 个月计算
+- <sup>\#</sup> 测试使用[Stable Diffusion XL]模型，Base 运行20步，Refiner 运行5步，每张图片生成用时如下表：
 
+  | **实例类型**  | **用时（秒）** |
+  |:------------|:------------|
+  | g6e.2xlarge | 3.61 |
+  | g6.2xlarge | 10.53 |
+  | g5.2xlarge | 8.53 |
 
-请注意该估算仅为参考费用。实际的费用可能会根据您所使用的模型，任务参数，Spot实例当前定价等有所不同。
+- \* 单价参照 2024 年 8 月 30 日 至 2024 年 9 月 6 日 美国西部（俄勒冈）区域所有可用区Spot实例价格之平均值
+- \*\* 按请求平均 4 KB，回调平均 2 KB 计算
+- \*\*\* 按图像平均 1024 KB，存储 1 个月计算
+
+请注意该估算仅为参考费用。实际的费用可能会根据您所使用的模型，任务参数，Spot实例当前定价等有所不同。以上价格不作为AWS对您的报价或价格承诺。
 
 ## 安全
 
@@ -155,6 +177,7 @@ Stable Diffusion作为一种强大的文本到图像生成模型，其应用场�
 AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问策略和权限到 AWS 云上的服务和用户。
 
 此解决方案会为以下组件创建独立的IAM角色并授予权限：
+
 1. Amazon EKS 集群，含
   * 创建和操作集群
   * 节点组
@@ -171,7 +194,7 @@ AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问
 
 ### 访问控制
 
-该解决方案通过API Key机制对外部用户进行访问控制，用户需在请求中包含合法的API Key。关于API Key的更多信息，请参考[API规范文档](#api-调用规则)。
+该解决方案通过API Key机制对外部用户进行访问控制，用户需在请求中包含合法的API Key。关于API Key的更多信息，请参考[API规范文档](#api-调用规则)。如您选择通过调用Lambda函数，或通过SNS向该解决方案发送请求，则AWS IAM会根据对应的资源策略和基于身份的策略，进行对应服务的访问控制。
 
 ### 网络
 
@@ -187,57 +210,52 @@ AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问
 与该解决方案相关的主要服务配额为：
 
 | AWS 服务 | 配额条目 | 预估使用量 | 是否可调整 |
-|---------|---------|-----------|-----------|
-| Amazon EC2  | [Running On-Demand G and VT instances](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-DB2E81BA){:target="_blank"} | 按最大并发GPU实例数量 | [X]  |
-| Amazon EC2  | [All G and VT Spot Instance Requests](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-3819A6DF){:target="_blank"} | 按最大并发GPU实例数量 | [X]  |
-| Amazon SNS  | [Messages Published per Second](https://console.aws.amazon.com/servicequotas/home/services/sns/quotas/L-F8E2BA85){:target="_blank"} | 按最大并发请求数 | [X]  |
+|:---------|:---------|:-----------|:-----------|
+| Amazon EC2  | [Running On-Demand G and VT instances](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-DB2E81BA){:target="_blank"} | 按最大并发GPU实例数量 | ✅  |
+| Amazon EC2  | [All G and VT Spot Instance Requests](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-3819A6DF){:target="_blank"} | 按最大并发GPU实例数量 | ✅  |
+| Amazon SNS  | [Messages Published per Second](https://console.aws.amazon.com/servicequotas/home/services/sns/quotas/L-F8E2BA85){:target="_blank"} | 按最大并发请求数 | ✅  |
 
 除此之外，部署时需要考虑以下服务配额：
 
 | AWS 服务 | 配额条目 | 预估使用量 | 是否可调整 |
-|---------|---------|-----------|-----------|
-| Amazon VPC  | [VPCs per Region](https://console.aws.amazon.com/servicequotas/home/services/vpc/quotas/L-F678F1CE){:target="_blank"} | 1 | [X] |
-| Amazon VPC  | [NAT gateways per Availability Zone](https://console.aws.amazon.com/servicequotas/home/services/vpc/quotas/L-FE5A380F){:target="_blank"} | 1 | [X]  |
-| Amazon EC2  | [EC2-VPC Elastic IPs](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-0263D0A3){:target="_blank"} | 1 | [X]  |
-| Amazon S3  | [General purpose buckets](https://console.aws.amazon.com/servicequotas/home/services/s3/quotas/L-DC2B2D3D){:target="_blank"} | 每个队列1个 | [X]  |
+|:---------|:---------|:-----------|:-----------|
+| Amazon VPC  | [VPCs per Region](https://console.aws.amazon.com/servicequotas/home/services/vpc/quotas/L-F678F1CE){:target="_blank"} | 1 | ✅ |
+| Amazon VPC  | [NAT gateways per Availability Zone](https://console.aws.amazon.com/servicequotas/home/services/vpc/quotas/L-FE5A380F){:target="_blank"} | 1 | ✅  |
+| Amazon EC2  | [EC2-VPC Elastic IPs](https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/L-0263D0A3){:target="_blank"} | 1 | ✅  |
+| Amazon S3  | [General purpose buckets](https://console.aws.amazon.com/servicequotas/home/services/s3/quotas/L-DC2B2D3D){:target="_blank"} | 每个队列1个 | ✅  |
 
 ## 部署解决方案
 
 ### 部署前准备
 
 #### 可部署区域
+
 此解决方案使用的服务，或 Amazon EC2 实例类型目前可能并非在所有 AWS 区域都可用。请在提供所需服务的 AWS 区域中启动此解决方案。
 
-**已验证可部署的区域**
+该方案经验证，可部署的区域如下表：
 
 | 区域名称| 验证通过 |
-|---------|---------------|
-| 美国东部 (弗吉尼亚北部)  | [X]  |
-| 美国西部 (俄勒冈)     | [X]  |
+|:---------|:---------------|
+| 美国东部 (弗吉尼亚北部)  | ✅  |
+| 美国西部 (俄勒冈)     | ✅  |
+| 欧洲 (法兰克福)     | ✅  |
+| 亚太地区 (东京)     | ✅  |
 
 如您在未经验证的区域进行部署，可能需要进行以下处理，或面临以下问题：
 
-* 在不支持`g5`实例类型的区域部署时，您需要手工指定 Karpenter 使用的实例类型为 `g4dn` 或其他 GPU 实例类型。
-
-**在亚马逊云科技中国区域部署**
-
-该解决方案支持在亚马逊云科技中国区域部署，但步骤与正常部署流程不同。请参见[在亚马逊云科技中国区域部署](#在亚马逊云科技中国区域部署)
-
-#### IAM 权限
-
-部署该解决方案需要管理员或与之相当的权限。由于组件较多，我们暂不提供最小权限列表。
+* 您需要手工指定 Karpenter 使用的实例类型为该区域可提供的加速计算实例类型。
+* 该解决方案支持在[亚马逊云科技中国区域](https://www.amazonaws.cn/)部署，但步骤与正常部署流程不同。请参见[在亚马逊云科技中国区域部署](#在亚马逊云科技中国区域部署)
 
 #### 选择 Stable Diffusion 运行时
 
 您需要运行时来部署Stable Diffusion模型并提供API访问。
 
-目前有多个社区Stable Diffusion运行时可用:
+目前有多个社区Stable Diffusion运行时可用，如下表:
 
 | 运行时名称           | 链接 |  验证  |
-|----------------|-----------------|----------------------|
-| Stable Diffusion Web UI  | [GitHub](https://github.com/AUTOMATIC1111/stable-diffusion-webui) | [X]  |
-| ComfyUI     | [GitHub](https://github.com/comfyanonymous/ComfyUI) | [X]  |
-| InvokeAI     | [GitHub](https://github.com/invoke-ai/InvokeAI) |   |
+|:----------------|:-----------------|:----------------------|
+| Stable Diffusion Web UI  | [GitHub](https://github.com/AUTOMATIC1111/stable-diffusion-webui) | ✅  |
+| ComfyUI     | [GitHub](https://github.com/comfyanonymous/ComfyUI) | ✅  |
 
 您也可以选择其他运行时，或构建自己的运行时。您需要将运行时打包为容器镜像，以便在 EKS 上运行。
 
@@ -246,7 +264,7 @@ AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问
 {: .note-title }
 > 样例运行时
 >
-> 您可以使用社区提供的[示例 Dockerfile](https://github.com/yubingjiaocn/stable-diffusion-webui-docker) 构建 *Stable Diffusion Web UI* 和 *ComfyUI* 的运行时容器镜像。请注意，该镜像仅用于技术评估和测试用途，请勿将该镜像部署至生产环境。
+> 您可以使用社区提供的[示例 Dockerfile](https://github.com/yubingjiaocn/stable-diffusion-dockerfile) 构建 *Stable Diffusion Web UI* 和 *ComfyUI* 的运行时容器镜像。请注意，该镜像仅用于技术评估和测试用途，请勿将该镜像部署至生产环境。
 
 {: .highlight-title }
 > 模型存储
@@ -266,7 +284,48 @@ AWS Identity and Access Management (IAM) 角色允许客户分配精细的访问
 > * 静态运行时使用的模型需要在`modelFilename`中预先指定。该模型会在启动时加载到显存中。
 > * 动态运行时需要指定`dynamicModel: true`。此时无需预先指定模型，运行时会根据请求中使用的模型，从Amazon S3中加载模型并进行模型推理。
 
-### 其他重要提示和限制
+#### 支持的实例类型
+
+该方案需要使用 [Amazon EC2 加速计算实例](https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing) 运行，支持的实例类型如下表：
+
+| 实例类型    | 加速芯片 |  显存 \[ GiB \]  | 验证 | 默认 |
+|:---------|:--------|:------------|:------------|:------------|
+| [g4.*](https://aws.amazon.com/ec2/instance-types/g4/)  | NVIDIA Tesla T4G GPU | 16 | ❌*  | |
+| [g5.*](https://aws.amazon.com/ec2/instance-types/g5/)  | NVIDIA A10 Tensor Core GPU | 24 | ✅  | ✅* |
+| [g6.*](https://aws.amazon.com/ec2/instance-types/g6/)  | NVIDIA L4 Tensor Core GPU | 24 | ✅  | ✅* |
+| [g6e.*](https://aws.amazon.com/ec2/instance-types/g6e/)  | NVIDIA L40 Tensor Core GPU | 48 | ✅  | |
+
+- \* 仅当您选择使用 Stable Diffusion 1.5 模型时，才可使用g4实例类型
+- \*\* Karpenter会根据实例启动时Spot实例的供需状况和价格，决定启动哪种实例类型
+
+您需要使用 `2xlarge` 或更大的实例大小，以确保有充足内存可用。
+
+除非您选用的运行时支持多卡并行推理，且进行了额外配置，否则每个运行时副本会占用，且只会占用1个GPU。
+
+#### 支持的基础模型
+
+该方案目前经过验证，可使用的基础模型如下表：
+
+| 模型名称    | 开发商 |  验证 |
+|:---------|:--------|:------------|
+| [Stable Diffusion 1.5](https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive) | [Runway](https://runwayml.com/) | ✅ |
+| [Stable Diffusion 2.x](https://huggingface.co/stabilityai/stable-diffusion-2-1) | [Stability AI](https://stability.ai/) | ✅ |
+| [Stable Diffusion XL](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0) | [Stability AI](https://stability.ai/) | ✅ |
+| [Stable Diffusion 3 Medium](https://huggingface.co/stabilityai/stable-diffusion-3-medium) | [Stability AI](https://stability.ai/) | ✅ |
+| [Flux.1 \[dev\]](https://huggingface.co/black-forest-labs/FLUX.1-dev) | [Black Forest Lab](https://blackforestlabs.ai/) | ✅ |
+| [Flux.1 \[schnell\]](https://huggingface.co/black-forest-labs/FLUX.1-schnell) | [Black Forest Lab](https://blackforestlabs.ai/) | ✅ |
+
+该解决方案也支持基于上表中基础模型Fine-tune得来的风格化模型。
+
+如您希望在基础模型上叠加额外模型（如ControlNet），请确保附加的模型支持您所选用的基础模型。
+
+您需要充分了解并遵守您所使用模型的许可证条款。
+
+#### IAM 权限
+
+部署该解决方案需要管理员或与之相当的权限。由于组件较多，我们暂不提供最小权限列表。
+
+#### 其他重要提示和限制
 
 - 在当前版本，该解决方案部署时会自动创建一个新的VPC。该VPC包含：
     - CIDR为`10.0.0.0/16`
@@ -296,7 +355,7 @@ cd guidance-for-asynchronous-inference-with-stable-diffusion-on-aws
 {: .warning-title }
 > 操作系统限制
 >
-> 该脚本只可在以Bash为Shell的Linux操作系统上运行。该脚本在Amazon Linux和Ubuntu操作系统下验证通过。该脚本不可在Windows, WSL (Windows Subsystem of Linux) 和 MacOS 下运行。 我们建议您使用EC2实例或Cloud9工作空间来运行此脚本。
+> 该脚本只可在以Bash为Shell的Linux操作系统上运行。该脚本在Amazon Linux 2023和Ubuntu 22.04操作系统下验证通过。该脚本不可在Windows, WSL (Windows Subsystem of Linux) 和 MacOS 下运行。 我们建议您使用EC2实例或Cloud9工作空间来运行此脚本。
 
 
 #### 一键部署
@@ -311,7 +370,7 @@ cd deploy
 该脚本将：
 
 * 安装必要的运行时和工具
-* 创建S3存储桶，从[HuggingFace](https://huggingface.co/runwayml/stable-diffusion-v1-5){:target="_blank"} 中下载Stable Diffusion 1.5的基础模型，放置在存储桶中
+* 创建S3存储桶，从[HuggingFace](https://huggingface.co/stabilityai/stable-diffusion-2-1){:target="_blank"} 中下载Stable Diffusion 2.1的基础模型，放置在存储桶中
 * 使用我们提供的示例镜像，创建包含SD Web UI镜像的EBS快照
 * 创建一个含SD Web UI运行时的Stable Diffusion解决方案
 
@@ -469,7 +528,7 @@ docker build -t queue-agent:latest src/backend/queue_agent/
 {: .new-title }
 > 示例运行时
 >
-> 您可以使用社区提供的[示例 Dockerfile](https://github.com/yubingjiaocn/stable-diffusion-webui-docker) 构建 *Stable Diffusion Web UI* 和 *ComfyUI* 的运行时容器镜像。请注意，该镜像仅用于技术评估和测试用途，请勿将该镜像部署至生产环境。
+> 您可以使用社区提供的[示例 Dockerfile](https://github.com/yubingjiaocn/stable-diffusion-dockerfile) 构建 *Stable Diffusion Web UI* 和 *ComfyUI* 的运行时容器镜像。请注意，该镜像仅用于技术评估和测试用途，请勿将该镜像部署至生产环境。
 
 **将镜像推送至Amazon ECR**
 
@@ -663,7 +722,7 @@ cd utils/bottlerocket-images-cache
     - name: "sdruntime" # 必要参数，运行时的名称，不能和其他运行时重名
       namespace: "default" # 必要参数，运行时所在的Kubernetes命名空间，不建议和其他运行时放置在相同的命名空间。
       type: "sdwebui" # 必要参数，该运行时的类型，目前仅支持"sdwebui"和"comfyui"
-      modelFilename: "v1-5-pruned-emaonly.safetensors" # （SD Web UI）该运行时使用的模型名称，不能和其他运行时重复。
+      modelFilename: "v2-1_768-ema-pruned.safetensors" # （SD Web UI）该运行时使用的模型名称，不能和其他运行时重复。
       dynamicModel: false # （SD Web UI）该运行时是否允许动态加载模型。
     ```
 
@@ -678,7 +737,7 @@ cd utils/bottlerocket-images-cache
     - name: "sdruntime"
       namespace: "default"
       type: "sdwebui"
-      modelFilename: "v1-5-pruned-emaonly.safetensors"
+      modelFilename: "v2-1_768-ema-pruned.safetensors"
       dynamicModel: false
       chartRepository: "" # 可选参数，如您构建了Helm Chart，则需要填入Chart所在的地址。需要包含协议前缀 (oci:// 或 https:// )
       chartVersion: "" # 可选参数，如您构建了Helm Chart，则需要填入Chart的版本
@@ -703,7 +762,7 @@ cd utils/bottlerocket-images-cache
     - name: "sdruntime"
       namespace: "default"
       type: "sdwebui"
-      modelFilename: "v1-5-pruned-emaonly.safetensors"
+      modelFilename: "v2-1_768-ema-pruned.safetensors"
       extraValues:
         karpenter: # 添加以下内容
           nodeTemplate:
@@ -745,8 +804,9 @@ sdoneksStack.ConfigCommand = aws eks update-kubeconfig --name sdoneksStack --reg
 该解决方案支持在亚马逊云科技中国区域部署。
 
 | 区域名称           | 验证通过 |
-|----------------|---------------------------------------|
-| 中国 (宁夏)  | [x]  |
+|:----------------|:---------|
+| 中国 (北京)  | ✅  |
+| 中国 (宁夏)  | ✅  |
 
 但由于中国的网络环境特殊，会受到如下限制：
 
@@ -773,6 +833,10 @@ sdoneksStack.ConfigCommand = aws eks update-kubeconfig --name sdoneksStack --reg
 
 如需将预构建镜像转移到中国区的ECR，您可以在一台已安装Docker，并有ECR权限的实例上，运行如下命令：
 
+<details>
+
+<summary>点击以展开命令</summary>
+
 ```bash
 docker pull public.ecr.aws/bingjiao/sd-on-eks/sdwebui:latest
 docker pull public.ecr.aws/bingjiao/sd-on-eks/comfyui:latest
@@ -792,6 +856,8 @@ docker push 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn/sd-on-eks/sdweb
 docker push 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn/sd-on-eks/comfyui:latest
 docker push 123456789012.dkr.ecr.cn-northwest-1.amazonaws.com.cn/sd-on-eks/queue-agent:latest
 ```
+
+</details>
 
 我们建议您按照[镜像构建](#镜像构建)文档提供的方式，将Helm Chart放置在ECR或HTTP服务器中。
 
@@ -814,6 +880,10 @@ cd deploy
 
 该命令会在上级目录下生成一个 `config.yaml` 的模板，但该模板需要进行编辑以在中国区进行部署。请按注释编辑该文件：
 
+<details>
+
+<summary>点击以展开示例</summary>
+
 ```yaml
 stackName: sdoneks
 modelBucketArn: arn:aws-cn:s3:::${MODEL_BUCKET}  # 此处ARN中aws改为aws-cn
@@ -825,7 +895,7 @@ APIGW:
 modelsRuntime:
 - name: sdruntime
   namespace: "default"
-  modelFilename: "v1-5-pruned-emaonly.safetensors"
+  modelFilename: "v2-1_768-ema-pruned.safetensors"
   dynamicModel: false
   # chartRepository: "http://example.com/" # 如您自行托管Helm Chart，请去除此行注释，并将值改为Helm Chart的地址（oci://或http://），否则删除此行。
   type: sdwebui
@@ -853,6 +923,8 @@ modelsRuntime:
           spot: true
 
 ```
+
+</details>
 
 完成后，可运行部署命令进行部署：
 
@@ -908,7 +980,7 @@ AWS CLI
 aws cloudformation describe-stacks --stack-name SdOnEKSStack --output text --query 'Stacks[0].Outputs[?OutputKey==`FrontApiEndpoint`].OutputValue'
 ```
 
-您需要在端点后附加API版本。目前我们支持`v1alpha1`和`v1alpha2`版本。例如，当您使用`v1alpha2`版本API时，请求应发送至：
+您需要在端点后附加API版本。目前我们支持`v1alpha2`版本。例如，当您使用`v1alpha2`版本API时，请求应发送至：
 
 ```
 https://abcdefghij.execute-api.ap-southeast-1.amazonaws.com/prod/v1alpha2
@@ -1061,7 +1133,7 @@ v1alpha1
 {
     "alwayson_scripts": {
         "task": "text-to-image", // 必要，任务类型
-        "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors", // 必要，基础模型名称，关联队列分发或模型切换
+        "sd_model_checkpoint": "v2-1_768-ema-pruned.safetensors", // 必要，基础模型名称，关联队列分发或模型切换
         "id_task": "test-t2i", // 必要，任务ID，在上传结果图片和返回响应时会用到
         "save_dir": "outputs" // 必要，输出文件在S3桶中的前缀（即目录名）
     },
@@ -1092,7 +1164,7 @@ v1alpha1
 ```json-doc
 {
   "id_task": "test-t2i",
-  "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
+  "sd_model_checkpoint": "v2-1_768-ema-pruned.safetensors",
   "output_location": "s3://outputbucket/output/test-t2i"
 }
 ```
@@ -1104,7 +1176,7 @@ v1alpha1
 ```json-doc
         "content": {
           "alwayson_scripts": {
-            "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors" //此处放入模型名称
+            "sd_model_checkpoint": "v2-1_768-ema-pruned.safetensors" //此处放入模型名称
           },
         }
 ```
@@ -1163,7 +1235,7 @@ v1alpha1
         "task": "image-to-image", // 必要，任务类型
         "image_link": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/diffusers/cat.png", // 必要，输入图片的url
         "id_task": "test-i2i", // 必要，任务ID，在上传结果图片和返回响应时会用到
-        "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors", // 必要，基础模型名称，关联队列分发或模型切换
+        "sd_model_checkpoint": "v2-1_768-ema-pruned.safetensors", // 必要，基础模型名称，关联队列分发或模型切换
     },
     // 以下皆为官方参数，使用默认值或者直接传入即可
     "prompt": "cat wizard, gandalf, lord of the rings, detailed, fantasy, cute, adorable, Pixar, Disney, 8k",
@@ -1192,7 +1264,7 @@ v1alpha1
 ```json-doc
 {
   "id_task": "test-i2i",
-  "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
+  "sd_model_checkpoint": "v2-1_768-ema-pruned.safetensors",
   "output_location": "s3://outputbucket/output/test-t2i"
 }
 ```
@@ -1204,7 +1276,7 @@ v1alpha1
 ```json-doc
         "content": {
           "alwayson_scripts": {
-            "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors" //此处放入模型名称
+            "sd_model_checkpoint": "v2-1_768-ema-pruned.safetensors" //此处放入模型名称
           },
         }
 ```

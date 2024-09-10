@@ -1,0 +1,33 @@
+h1 {
+  @include fs-9;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+h2 {
+  @include fs-7;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+h3 {
+  @include fs-6;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+h4 {
+  text-transform: none;
+  letter-spacing: unset;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  font-weight: bold;
+
+  @include fs-5;
+}
+
+h5 {
+  margin-bottom: 8px;
+  font-weight: bold;
+  @include fs-4;
+}

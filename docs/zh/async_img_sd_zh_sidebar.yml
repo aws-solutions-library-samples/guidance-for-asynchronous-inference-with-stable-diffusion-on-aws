@@ -5,6 +5,16 @@ entries:
       url: '#简介'
       output: web
 
+    - title: 功能特性
+      parent: 简介
+      url: '#功能特性'
+      output: web
+
+    - title: 使用场景
+      parent: 简介
+      url: '#使用场景'
+      output: web
+
     - title: 架构概览
       url: '#架构概览'
       output: web
