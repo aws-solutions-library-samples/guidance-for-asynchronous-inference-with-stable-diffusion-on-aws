@@ -1,7 +1,7 @@
-apiVersion: karpenter.k8s.aws/v1beta1
+apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
-  name: {{ include "sdchart.fullname" . }}-nodetemplate-gpu
+  name: {{ include "sdchart.fullname" . }}-nodeclass-gpu
   labels:
   {{- include "sdchart.labels" . | nindent 4 }}
   {{- if .Values.runtime.labels }}
