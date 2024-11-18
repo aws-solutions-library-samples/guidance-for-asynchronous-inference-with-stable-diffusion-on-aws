@@ -1,7 +1,7 @@
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: {{ include "sdchart.fullname" . }}-provisioner-gpu
+  name: {{ include "sdchart.fullname" . }}-nodepool-gpu
   labels:
   {{- include "sdchart.labels" . | nindent 4 }}
   {{- if .Values.runtime.labels }}
@@ -20,9 +20,9 @@ spec:
       {{- end }}
     spec:
       nodeClassRef:
-        apiVersion: karpenter.k8s.aws/v1beta1
+        group: karpenter.k8s.aws
         kind: EC2NodeClass
-        name: {{ include "sdchart.fullname" . }}-nodetemplate-gpu
+        name: {{ include "sdchart.fullname" . }}-nodeclass-gpu
       taints:
       - effect: NoSchedule
         key: nvidia.com/gpu
@@ -31,6 +31,9 @@ spec:
         value: {{ include "sdchart.fullname" . }}
       {{- if .Values.karpenter.provisioner.extraTaints }}
       {{- toYaml .Values.karpenter.provisioner.extraTaints | nindent 6 }}
+      {{- end }}
+      {{- if .Values.karpenter.provisioner.disruption.expireAfter }}
+      expireAfter: {{ .Values.karpenter.provisioner.disruption.expireAfter }}
       {{- end }}
       requirements:
       - key: karpenter.sh/capacity-type
@@ -53,14 +56,11 @@ spec:
       {{- end }}
   disruption:
     {{- if .Values.karpenter.provisioner.consolidation }}
-    consolidationPolicy: WhenUnderutilized
+    consolidationPolicy: WhenEmptyOrUnderutilized
     {{- else }}
     consolidationPolicy: WhenEmpty
     {{- end }}
-    {{- if eq .Values.karpenter.provisioner.consolidation false }}
     consolidateAfter: {{ .Values.karpenter.provisioner.disruption.consolidateAfter }}
-    expireAfter: {{ .Values.karpenter.provisioner.disruption.expireAfter }}
-    {{- end }}
   {{- if .Values.karpenter.provisioner.resourceLimits }}
   limits:
   {{- toYaml .Values.karpenter.provisioner.resourceLimits | nindent 4 }}
