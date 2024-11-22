@@ -142,9 +142,9 @@ const MngProps: blueprints.MngClusterProviderProps = {
   minSize: 2,
   maxSize: 2,
   desiredSize: 2,
-  version: eks.KubernetesVersion.V1_29,
-  instanceTypes: [new ec2.InstanceType('m5.large')],
-  amiType: eks.NodegroupAmiType.AL2_X86_64,
+  version: eks.KubernetesVersion.V1_31,
+  instanceTypes: [new ec2.InstanceType('m7g.large')],
+  amiType: eks.NodegroupAmiType.AL2023_ARM_64_STANDARD,
   enableSsmPermissions: true,
   nodeGroupTags: {
     "Name": cdk.Aws.STACK_NAME + "-ClusterComponents",
@@ -154,7 +154,7 @@ const MngProps: blueprints.MngClusterProviderProps = {
 
 // Deploy EKS cluster with all add-ons
 const blueprint = blueprints.EksBlueprint.builder()
-  .version(eks.KubernetesVersion.V1_29)
+  .version(eks.KubernetesVersion.V1_31)
   .addOns(...addOns)
   .resourceProvider(
     blueprints.GlobalResources.Vpc,
@@ -167,7 +167,7 @@ const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("s3GWEndpoint", new s3GWEndpointProvider("s3GWEndpoint"))
   .clusterProvider(new blueprints.MngClusterProvider(MngProps))
   .build(scope, id + 'Stack', props);
-
+/*
   // Workaround for permission denied when creating cluster
     const handler = blueprint.node.tryFindChild('@aws-cdk--aws-eks.KubectlProvider')!
       .node.tryFindChild('Handler')! as cdk.aws_lambda.Function
@@ -184,7 +184,7 @@ const blueprint = blueprints.EksBlueprint.builder()
         actions: ["lambda:GetFunctionConfiguration"],
         resources: [handler.functionArn]
       }))
-
+ */
   // Provide static output name for cluster
     const cluster = blueprint.getClusterInfo().cluster
     const clusterNameCfnOutput = cluster.node.findChild('ClusterName') as cdk.CfnOutput;
