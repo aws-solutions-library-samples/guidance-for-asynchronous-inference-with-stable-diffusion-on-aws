@@ -100,7 +100,7 @@ export default class DataPlaneStack {
       new blueprints.addons.AwsLoadBalancerControllerAddOn(),
       new blueprints.addons.KarpenterAddOn({ interruptionHandling: true }),
       new blueprints.addons.KedaAddOn(kedaParams),
-      new blueprints.addons.CloudWatchInsights(),
+      new blueprints.addons.CloudWatchInsights(cloudWatchInsightsParams),
       new s3CSIDriverAddOn(s3CSIDriverAddOnParams),
       new SharedComponentAddOn(SharedComponentAddOnParams),
       new EbsThroughputTunerAddOn(EbsThroughputModifyAddOnParams),
