@@ -1,7 +1,7 @@
 {
     "alwayson_scripts": {
         "task": "text-to-image",
-        "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
+        "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors",
         "id_task": "test-t2i",
         "save_dir": "outputs"
     },

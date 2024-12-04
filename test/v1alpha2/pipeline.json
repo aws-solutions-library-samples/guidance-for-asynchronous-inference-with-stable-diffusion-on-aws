@@ -40,7 +40,7 @@
       },
       "4": {
         "inputs": {
-          "ckpt_name": "v1-5-pruned-emaonly.safetensors"
+          "ckpt_name": "sd_xl_turbo_1.0.safetensors"
         },
         "class_type": "CheckpointLoaderSimple",
         "_meta": {

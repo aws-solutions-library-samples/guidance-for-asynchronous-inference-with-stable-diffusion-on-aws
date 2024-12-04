@@ -328,7 +328,7 @@ cd deploy
 This script will:
 
 * Install the necessary runtimes and tools.
-* Create an S3 bucket, download the Stable Diffusion 1.5 foundation model from [HuggingFace](https://huggingface.co/runwayml/stable-diffusion-v1-5){:target="_blank"}, and place it in the bucket.
+* Create an S3 bucket, download the Stable Diffusion XL-Turbo foundation model from [HuggingFace](https://huggingface.co/stabilityai/sdxl-turbo){:target="_blank"}, and place it in the bucket.
 * Create an EBS snapshot containing the SD Web UI image using our provided sample image.
 * Create a Stable Diffusion guidance with the SD Web UI runtime.
 
@@ -679,7 +679,7 @@ The configuration for This guidance is stored in the `config.yaml` file. We prov
     - name: "sdruntime" # Required parameter, the name of the runtime, cannot be the same as other runtimes
       namespace: "default" # Required parameter, the Kubernetes namespace where the runtime is located, not recommended to place in the same namespace as other runtimes
       type: "sdwebui" # Required parameter, the type of this runtime, currently only supports "sdwebui" and "comfyui"
-      modelFilename: "v1-5-pruned-emaonly.safetensors" # (SD Web UI) Name of the model used by this runtime, cannot be the same as other runtimes
+      modelFilename: "sd_xl_turbo_1.0.safetensors" # (SD Web UI) Name of the model used by this runtime, cannot be the same as other runtimes
       dynamicModel: false # (SD Web UI) Whether this runtime allows dynamic model loading
     ```
 
@@ -694,7 +694,7 @@ The configuration for This guidance is stored in the `config.yaml` file. We prov
     - name: "sdruntime"
       namespace: "default"
       type: "sdwebui"
-      modelFilename: "v1-5-pruned-emaonly.safetensors"
+      modelFilename: "sd_xl_turbo_1.0.safetensors"
       dynamicModel: false
       chartRepository: "" # Optional parameter, if you built the Helm Chart, enter the address where the Chart is located. Include the protocol prefix (oci:// or https://)
       chartVersion: "" # Optional parameter, if you built the Helm Chart, enter the version of the Chart
@@ -719,7 +719,7 @@ The configuration for This guidance is stored in the `config.yaml` file. We prov
     - name: "sdruntime"
       namespace: "default"
       type: "sdwebui"
-      modelFilename: "v1-5-pruned-emaonly.safetensors"
+      modelFilename: "sd_xl_turbo_1.0.safetensors"
       extraValues:
         karpenter: # Add the following content
           nodeTemplate:
@@ -840,7 +840,7 @@ APIGW:
 modelsRuntime:
 - name: sdruntime
   namespace: "default"
-  modelFilename: "v1-5-pruned-emaonly.safetensors"
+  modelFilename: "sd_xl_turbo_1.0.safetensors"
   dynamicModel: false
   # chartRepository: "http://example.com/" # If you self-hosted the Helm Chart, uncomment this line and change the value to the address of the Helm Chart (oci:// or http://), otherwise delete this line
   type: sdwebui
@@ -1073,7 +1073,7 @@ v1alpha1
 {
     "alwayson_scripts": {
         "task": "text-to-image", // Required, task type
-        "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors", // Required, base model name
+        "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors", // Required, base model name
         "id_task": "test-t2i", // Required, task ID, used when uploading result images and returning responses
         "save_dir": "outputs" // Required, the prefix (directory name) for the output file in the S3 bucket
     },
@@ -1104,7 +1104,7 @@ v1alpha1
 ```json-doc
 {
   "id_task": "test-t2i",
-  "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
+  "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors",
   "output_location": "s3://outputbucket/output/test-t2i"
 }
 ```
@@ -1116,7 +1116,7 @@ If the corresponding runtime is set to `dynamicModel: true`, you need to add the
 ```json-doc
         "content": {
           "alwayson_scripts": {
-            "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors" //Place the model name here
+            "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors" //Place the model name here
           },
         }
 ```
@@ -1174,7 +1174,7 @@ v1alpha1
         "task": "image-to-image", // Required, task type
         "image_link": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/diffusers/cat.png", // Required, URL of the input image
         "id_task": "test-i2i", // Required, task ID, used when uploading result images and returning responses
-        "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors", // Required, base model name, associated with queue dispatching or model switching
+        "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors", // Required, base model name, associated with queue dispatching or model switching
     },
     // The following are official parameters, use the default values or pass them in directly
     "prompt": "cat wizard, gandalf, lord of the rings, detailed, fantasy, cute, adorable, Pixar, Disney, 8k",
@@ -1203,7 +1203,7 @@ v1alpha1
 ```json-doc
 {
   "id_task": "test-i2i",
-  "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
+  "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors",
   "output_location": "s3://outputbucket/output/test-t2i"
 }
 ```
@@ -1215,7 +1215,7 @@ If the corresponding runtime is set to `dynamicModel: true`, you need to add the
 ```json-doc
         "content": {
           "alwayson_scripts": {
-            "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors" //Place the model name here
+            "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors" //Place the model name here
           },
         }
 ```
