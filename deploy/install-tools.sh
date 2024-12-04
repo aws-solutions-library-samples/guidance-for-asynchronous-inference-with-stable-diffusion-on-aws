@@ -6,8 +6,8 @@ kubectl_version='1.29.0'
 helm_version='3.10.1'
 yq_version='4.30.4'
 s5cmd_version='2.2.2'
-node_version='20.13.1'
-cdk_version='2.133.0'
+node_version='22.12.0'
+cdk_version='2.162.1'
 
 download () {
   url=$1
