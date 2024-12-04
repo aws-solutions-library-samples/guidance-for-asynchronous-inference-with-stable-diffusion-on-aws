@@ -311,7 +311,7 @@ cd deploy
 该脚本将：
 
 * 安装必要的运行时和工具
-* 创建S3存储桶，从[HuggingFace](https://huggingface.co/runwayml/stable-diffusion-v1-5){:target="_blank"} 中下载Stable Diffusion 1.5的基础模型，放置在存储桶中
+* 创建S3存储桶，从[HuggingFace](https://huggingface.co/stabilityai/sdxl-turbo){:target="_blank"} 中下载Stable Diffusion XL-Turbo的基础模型，放置在存储桶中
 * 使用我们提供的示例镜像，创建包含SD Web UI镜像的EBS快照
 * 创建一个含SD Web UI运行时的Stable Diffusion解决方案
 
@@ -663,7 +663,7 @@ cd utils/bottlerocket-images-cache
     - name: "sdruntime" # 必要参数，运行时的名称，不能和其他运行时重名
       namespace: "default" # 必要参数，运行时所在的Kubernetes命名空间，不建议和其他运行时放置在相同的命名空间。
       type: "sdwebui" # 必要参数，该运行时的类型，目前仅支持"sdwebui"和"comfyui"
-      modelFilename: "v1-5-pruned-emaonly.safetensors" # （SD Web UI）该运行时使用的模型名称，不能和其他运行时重复。
+      modelFilename: "sd_xl_turbo_1.0.safetensors" # （SD Web UI）该运行时使用的模型名称，不能和其他运行时重复。
       dynamicModel: false # （SD Web UI）该运行时是否允许动态加载模型。
     ```
 
@@ -678,7 +678,7 @@ cd utils/bottlerocket-images-cache
     - name: "sdruntime"
       namespace: "default"
       type: "sdwebui"
-      modelFilename: "v1-5-pruned-emaonly.safetensors"
+      modelFilename: "sd_xl_turbo_1.0.safetensors"
       dynamicModel: false
       chartRepository: "" # 可选参数，如您构建了Helm Chart，则需要填入Chart所在的地址。需要包含协议前缀 (oci:// 或 https:// )
       chartVersion: "" # 可选参数，如您构建了Helm Chart，则需要填入Chart的版本
@@ -703,7 +703,7 @@ cd utils/bottlerocket-images-cache
     - name: "sdruntime"
       namespace: "default"
       type: "sdwebui"
-      modelFilename: "v1-5-pruned-emaonly.safetensors"
+      modelFilename: "sd_xl_turbo_1.0.safetensors"
       extraValues:
         karpenter: # 添加以下内容
           nodeTemplate:
@@ -825,7 +825,7 @@ APIGW:
 modelsRuntime:
 - name: sdruntime
   namespace: "default"
-  modelFilename: "v1-5-pruned-emaonly.safetensors"
+  modelFilename: "sd_xl_turbo_1.0.safetensors"
   dynamicModel: false
   # chartRepository: "http://example.com/" # 如您自行托管Helm Chart，请去除此行注释，并将值改为Helm Chart的地址（oci://或http://），否则删除此行。
   type: sdwebui
@@ -1061,7 +1061,7 @@ v1alpha1
 {
     "alwayson_scripts": {
         "task": "text-to-image", // 必要，任务类型
-        "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors", // 必要，基础模型名称，关联队列分发或模型切换
+        "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors", // 必要，基础模型名称，关联队列分发或模型切换
         "id_task": "test-t2i", // 必要，任务ID，在上传结果图片和返回响应时会用到
         "save_dir": "outputs" // 必要，输出文件在S3桶中的前缀（即目录名）
     },
@@ -1092,7 +1092,7 @@ v1alpha1
 ```json-doc
 {
   "id_task": "test-t2i",
-  "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
+  "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors",
   "output_location": "s3://outputbucket/output/test-t2i"
 }
 ```
@@ -1104,7 +1104,7 @@ v1alpha1
 ```json-doc
         "content": {
           "alwayson_scripts": {
-            "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors" //此处放入模型名称
+            "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors" //此处放入模型名称
           },
         }
 ```
@@ -1163,7 +1163,7 @@ v1alpha1
         "task": "image-to-image", // 必要，任务类型
         "image_link": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/diffusers/cat.png", // 必要，输入图片的url
         "id_task": "test-i2i", // 必要，任务ID，在上传结果图片和返回响应时会用到
-        "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors", // 必要，基础模型名称，关联队列分发或模型切换
+        "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors", // 必要，基础模型名称，关联队列分发或模型切换
     },
     // 以下皆为官方参数，使用默认值或者直接传入即可
     "prompt": "cat wizard, gandalf, lord of the rings, detailed, fantasy, cute, adorable, Pixar, Disney, 8k",
@@ -1192,7 +1192,7 @@ v1alpha1
 ```json-doc
 {
   "id_task": "test-i2i",
-  "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors",
+  "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors",
   "output_location": "s3://outputbucket/output/test-t2i"
 }
 ```
@@ -1204,7 +1204,7 @@ v1alpha1
 ```json-doc
         "content": {
           "alwayson_scripts": {
-            "sd_model_checkpoint": "v1-5-pruned-emaonly.safetensors" //此处放入模型名称
+            "sd_model_checkpoint": "sd_xl_turbo_1.0.safetensors" //此处放入模型名称
           },
         }
 ```
