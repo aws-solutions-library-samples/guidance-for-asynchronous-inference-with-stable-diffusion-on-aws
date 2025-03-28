@@ -48,49 +48,33 @@ export default class DataPlaneStack {
       irsaRoles: ["CloudWatchFullAccess", "AmazonSQSFullAccess"]
     };
 
-    const CloudWatchLogsWritePolicy = new iam.PolicyStatement({
-      actions: [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:DescribeLogStreams",
-        "logs:PutLogEvents",
-        "logs:GetLogEvents"
-      ],
-      resources: ["*"],
-    })
-
-    const awsForFluentBitParams: blueprints.AwsForFluentBitAddOnProps = {
-      iamPolicies: [CloudWatchLogsWritePolicy],
-      namespace: "amazon-cloudwatch",
-      values: {
-        cloudWatchLogs: {
-          region: cdk.Aws.REGION,
-          logRetentionDays: 7
-        },
-        tolerations: [{
-          "operator": "Exists",
-          "effect": "NoSchedule"
-        }]
-      },
-      createNamespace: true
-    }
-
-    const containerInsightsParams: blueprints.ContainerInsightAddonProps = {
-      values: {
-        adotCollector: {
-          daemonSet: {
-            tolerations: [{
-              "operator": "Exists",
-              "effect": "NoSchedule"
-            }],
-            cwreceivers: {
-              preferFullPodName: "true",
-              addFullPodNameMetricLabel: "true"
+    const cloudWatchInsightsParams: blueprints.CloudWatchInsightsAddOnProps = {
+      configurationValues: {
+        tolerations: [
+          {
+            key: "runtime",
+            operator: "Exists",
+            effect: "NoSchedule"
+          },
+          {
+            key: "nvidia.com/gpu",
+            operator: "Exists",
+            effect: "NoSchedule"
+          }
+        ],
+        containerLogs: {
+          enabled: true,
+          fluentBit: {
+            config: {
+              service: "[SERVICE]\n    Flush        5\n    Grace       30\n    Log_Level   info",
+              extraFiles: {
+                "application-log.conf": "[INPUT]\n    Name             tail\n    Tag              kube.*\n    Path             /var/log/containers/*.log\n    Parser           docker\n    DB               /var/log/flb_kube.db\n    Mem_Buf_Limit    5MB\n    Skip_Long_Lines  On\n    Refresh_Interval 10\n\n[FILTER]\n    Name                kubernetes\n    Match               kube.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     kube.var.log.containers.\n    Merge_Log           On\n    Merge_Log_Key      log_processed\n    K8S-Logging.Parser On\n    K8S-Logging.Exclude On\n\n[FILTER]\n    Name                grep\n    Match               kube.*\n    Exclude             $kubernetes['namespace_name'] kube-system\n\n[OUTPUT]\n    Name                cloudwatch\n    Match               kube.*\n    region              ${AWS_REGION}\n    log_group_name      /aws/containerinsights/${CLUSTER_NAME}/application\n    log_stream_prefix   ${HOST_NAME}-\n    auto_create_group   true\n    retention_in_days   7"
+              }
             }
           }
         }
       }
-    }
+    };
 
     const SharedComponentAddOnParams: SharedComponentAddOnProps = {
       inputSns: blueprints.getNamedResource("inputSNSTopic"),
@@ -116,12 +100,10 @@ export default class DataPlaneStack {
       new blueprints.addons.AwsLoadBalancerControllerAddOn(),
       new blueprints.addons.KarpenterAddOn({ interruptionHandling: true }),
       new blueprints.addons.KedaAddOn(kedaParams),
-      new blueprints.addons.ContainerInsightsAddOn(containerInsightsParams),
-      new blueprints.addons.AwsForFluentBitAddOn(awsForFluentBitParams),
+      new blueprints.addons.CloudWatchInsights(cloudWatchInsightsParams),
       new s3CSIDriverAddOn(s3CSIDriverAddOnParams),
       new SharedComponentAddOn(SharedComponentAddOnParams),
       new EbsThroughputTunerAddOn(EbsThroughputModifyAddOnParams),
-      new dcgmExporterAddOn({})
     ];
 
 // Generate SD Runtime Addon for runtime
@@ -160,9 +142,9 @@ const MngProps: blueprints.MngClusterProviderProps = {
   minSize: 2,
   maxSize: 2,
   desiredSize: 2,
-  version: eks.KubernetesVersion.V1_29,
-  instanceTypes: [new ec2.InstanceType('m5.large')],
-  amiType: eks.NodegroupAmiType.AL2_X86_64,
+  version: eks.KubernetesVersion.V1_31,
+  instanceTypes: [new ec2.InstanceType('m7g.large')],
+  amiType: eks.NodegroupAmiType.AL2023_ARM_64_STANDARD,
   enableSsmPermissions: true,
   nodeGroupTags: {
     "Name": cdk.Aws.STACK_NAME + "-ClusterComponents",
@@ -172,7 +154,7 @@ const MngProps: blueprints.MngClusterProviderProps = {
 
 // Deploy EKS cluster with all add-ons
 const blueprint = blueprints.EksBlueprint.builder()
-  .version(eks.KubernetesVersion.V1_29)
+  .version(eks.KubernetesVersion.V1_31)
   .addOns(...addOns)
   .resourceProvider(
     blueprints.GlobalResources.Vpc,
@@ -185,7 +167,7 @@ const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("s3GWEndpoint", new s3GWEndpointProvider("s3GWEndpoint"))
   .clusterProvider(new blueprints.MngClusterProvider(MngProps))
   .build(scope, id + 'Stack', props);
-
+/*
   // Workaround for permission denied when creating cluster
     const handler = blueprint.node.tryFindChild('@aws-cdk--aws-eks.KubectlProvider')!
       .node.tryFindChild('Handler')! as cdk.aws_lambda.Function
@@ -202,7 +184,7 @@ const blueprint = blueprints.EksBlueprint.builder()
         actions: ["lambda:GetFunctionConfiguration"],
         resources: [handler.functionArn]
       }))
-
+ */
   // Provide static output name for cluster
     const cluster = blueprint.getClusterInfo().cluster
     const clusterNameCfnOutput = cluster.node.findChild('ClusterName') as cdk.CfnOutput;

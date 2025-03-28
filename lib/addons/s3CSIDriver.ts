@@ -1,5 +1,5 @@
 import * as blueprints from '@aws-quickstart/eks-blueprints';
-import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
+import * as eks from 'aws-cdk-lib/aws-eks';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from "constructs";
 
@@ -12,7 +12,7 @@ export const defaultProps: blueprints.addons.HelmAddOnProps & s3CSIDriverAddOnPr
   name: 's3CSIDriverAddOn',
   namespace: 'kube-system',
   release: 's3-csi-driver-release',
-  version: 'v1.7.0',
+  version: 'v1.10.0',
   repository: 'https://awslabs.github.io/mountpoint-s3-csi-driver',
   s3BucketArn: ''
 }
@@ -31,6 +31,7 @@ export class s3CSIDriverAddOn extends blueprints.addons.HelmAddOn {
     const serviceAccount = cluster.addServiceAccount('s3-csi-driver-sa', {
       name: 's3-csi-driver-sa',
       namespace: this.options.namespace,
+      identityType: eks.IdentityType.POD_IDENTITY
     });
 
     // new IAM policy to grand access to S3 bucket
