@@ -199,17 +199,17 @@ def switch_model(api_base_url: str, name: str) -> str:
         # refresh then check from model list
         invoke_refresh_checkpoints(api_base_url)
         models = invoke_get_model_names(api_base_url)
-        try:
-            invoke_unload_checkpoints(api_base_url)
-        except HTTPError:
-            logger.info(f"No model is currently loaded.")
         if name in models:
+            try:
+                invoke_unload_checkpoints(api_base_url)
+            except HTTPError:
+                logger.info(f"No model is currently loaded. Loading new model... ")
             options = {}
             options["sd_model_checkpoint"] = name
             invoke_set_options(api_base_url, options)
             current_model_name = name
         else:
-            logger.error(f"Model {name} not found.")
+            logger.error(f"Model {name} not found, keeping current model.")
             return None
 
     return current_model_name
