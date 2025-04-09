@@ -200,7 +200,7 @@ def switch_model(api_base_url: str, name: str) -> str:
         invoke_refresh_checkpoints(api_base_url)
         models = invoke_get_model_names(api_base_url)
         if name in models:
-            if ((current_model_name != None) or (current_model_name != "")):
+            if (current_model_name != None):
                 logger.info(f"Model {current_model_name} is currently loaded, unloading... ")
                 try:
                     invoke_unload_checkpoints(api_base_url)
