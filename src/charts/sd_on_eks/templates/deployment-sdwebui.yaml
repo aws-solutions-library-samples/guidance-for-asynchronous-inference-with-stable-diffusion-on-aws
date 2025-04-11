@@ -10,10 +10,9 @@ metadata:
   {{- toYaml .Values.runtime.labels | nindent 4 }}
   {{- end }}
     runtime-type: sdwebui
-
   {{- if .Values.runtime.annotations }}
   annotations:
-  {{ toYaml .Values.runtime.annotations | nindent 4 }}
+  {{- toYaml .Values.runtime.annotations | nindent 4 }}
   {{- end }}
 
 spec:
@@ -31,7 +30,7 @@ spec:
     metadata:
       labels:
         app: inference-api
-      {{- include "sdchart.selectorLabels" . | nindent 8 }}
+        {{- include "sdchart.selectorLabels" . | nindent 8 }}
     spec:
       containers:
       - name: inference-api
@@ -48,7 +47,7 @@ spec:
           value: "true"
         - name: CONFIG_FILE
           value: "/tmp/config.json"
-        {{- if .Values.runtime.queueAgent.commandArguments }}
+        {{- if .Values.runtime.inferenceApi.commandArguments }}
         - name: EXTRA_CMD_ARG
           value: {{ .Values.runtime.inferenceApi.commandArguments }}
         {{- end }}
@@ -78,19 +77,22 @@ spec:
         {{- if .Values.runtime.queueAgent.extraEnv }}
         {{- toYaml .Values.runtime.queueAgent.extraEnv | nindent 8 }}
         {{- end }}
-        {{- if .Values.runtime.queueAgent.XRay.enabled }}
+        {{- if .Values.runtime.queueAgent.xray.enabled }}
         - name: AWS_XRAY_DAEMON_ADDRESS
           value: localhost:2000
         - name: AWS_XRAY_CONTEXT_MISSING
           value: IGNORE_ERROR
+        {{- else }}
+        - name: DISABLE_XRAY
+          value: "true"
         {{- end }}
         image: {{ .Values.runtime.queueAgent.image.repository }}:{{ .Values.runtime.queueAgent.image.tag }}
         imagePullPolicy: {{ .Values.runtime.queueAgent.imagePullPolicy }}
         resources:
         {{- toYaml .Values.runtime.queueAgent.resources | nindent 10 }}
-      {{- if .Values.runtime.queueAgent.XRay.enabled }}
+      {{- if .Values.runtime.queueAgent.xray.enabled }}
       - name: xray-daemon
-        image: public.ecr.aws/xray/aws-xray-daemon:3.3.7
+        image: {{ .Values.runtime.queueAgent.xray.daemon.image.repository }}:{{ .Values.runtime.queueAgent.xray.daemon.image.tag }}
         ports:
         - containerPort: 2000
           protocol: UDP

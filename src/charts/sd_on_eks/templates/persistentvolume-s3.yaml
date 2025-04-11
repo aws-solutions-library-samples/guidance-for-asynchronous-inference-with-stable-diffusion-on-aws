@@ -3,10 +3,9 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: {{ include "sdchart.fullname" . }}-s3-model-volume
-  annotations:
   {{- if .Values.runtime.persistence.annotations }}
   annotations:
-  {{ toYaml .Values.runtime.persistence.annotations | indent 4 }}
+  {{ toYaml .Values.runtime.persistence.annotations | nindent 4 }}
   {{- end }}
   labels:
   {{- include "sdchart.labels" . | nindent 4 }}
@@ -14,13 +13,13 @@ metadata:
   {{- toYaml .Values.runtime.labels | nindent 4 }}
   {{- end }}
   {{- if .Values.runtime.persistence.labels }}
-  {{ toYaml .Values.runtime.persistence.labels | indent 4 }}
+  {{- toYaml .Values.runtime.persistence.labels | nindent 4 }}
   {{- end }}
 spec:
   capacity:
     storage: {{ .Values.runtime.persistence.size }}
   accessModes:
-  {{ toYaml .Values.runtime.persistence.accessModes }}
+  {{- toYaml .Values.runtime.persistence.accessModes | nindent 2 }}
   mountOptions:
   - allow-delete
   - allow-other

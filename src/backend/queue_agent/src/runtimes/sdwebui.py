@@ -8,13 +8,28 @@ import time
 import traceback
 
 from requests.exceptions import ReadTimeout, HTTPError
-from aws_xray_sdk.core import xray_recorder
 from modules import http_action, misc
 
 logger = logging.getLogger("queue-agent")
 
 ALWAYSON_SCRIPTS_EXCLUDE_KEYS = ['task', 'id_task', 'uid',
                                  'sd_model_checkpoint', 'image_link', 'save_dir', 'sd_vae', 'override_settings']
+
+# Import the safe_xray_capture decorator from main module
+try:
+    from src.main import safe_xray_capture, xray_enabled
+except ImportError:
+    try:
+        # Try alternative import path
+        from ..main import safe_xray_capture, xray_enabled
+    except ImportError:
+        # Fallback if import fails - create a simple pass-through decorator
+        logger.warning("Failed to import safe_xray_capture from main, using fallback")
+        def safe_xray_capture(name):
+            def decorator(func):
+                return func
+            return decorator
+        xray_enabled = False
 
 def check_readiness(api_base_url: str, dynamic_sd_model: bool) -> bool:
     """Check if SD Web UI is ready by invoking /option endpoint"""
@@ -107,7 +122,7 @@ def handler(api_base_url: str, task_type: str, task_id: str, payload: dict, dyna
         response["content"] = content
     return response
 
-@xray_recorder.capture('text-to-image')
+@safe_xray_capture('text-to-image')
 def invoke_txt2img(api_base_url: str, body) -> str:
     # Compatiability for v1alpha1: Move override_settings from header to body
     override_settings = {}
@@ -128,7 +143,7 @@ def invoke_txt2img(api_base_url: str, body) -> str:
     response = http_action.do_invocations(api_base_url+"txt2img", body)
     return response
 
-@xray_recorder.capture('image-to-image')
+@safe_xray_capture('image-to-image')
 def invoke_img2img(api_base_url: str, body: dict) -> str:
     """Image-to-Image request"""
     # Process image link
@@ -155,19 +170,15 @@ def invoke_img2img(api_base_url: str, body: dict) -> str:
     response = http_action.do_invocations(api_base_url+"img2img", body)
     return response
 
-@xray_recorder.capture('extra-single-image')
+@safe_xray_capture('extra-single-image')
 def invoke_extra_single_image(api_base_url: str, body) -> str:
-
     body = download_image(body)
-
     response = http_action.do_invocations(api_base_url+"extra-single-image", body)
     return response
 
-@xray_recorder.capture('extra-batch-images')
+@safe_xray_capture('extra-batch-images')
 def invoke_extra_batch_images(api_base_url: str, body) -> str:
-
     body = download_image(body)
-
     response = http_action.do_invocations(api_base_url+"extra-batch-images", body)
     return response
 

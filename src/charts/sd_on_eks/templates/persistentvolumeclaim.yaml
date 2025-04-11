@@ -1,12 +1,11 @@
 {{- if and (.Values.runtime.persistence.enabled) (not (.Values.runtime.persistence.existingClaim)) }}
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ include "sdchart.fullname" . }}-model-claim
   {{- if .Values.runtime.persistence.annotations }}
   annotations:
-  {{ toYaml .Values.runtime.persistence.annotations | indent 4 }}
+  {{- toYaml .Values.runtime.persistence.annotations | nindent 4 }}
   {{- end }}
   labels:
   {{- include "sdchart.labels" . | nindent 4 }}
@@ -14,23 +13,22 @@ metadata:
   {{- toYaml .Values.runtime.labels | nindent 4 }}
   {{- end }}
   {{- if .Values.runtime.persistence.labels }}
-  {{ toYaml .Values.runtime.persistence.labels | indent 4 }}
+  {{- toYaml .Values.runtime.persistence.labels | nindent 4 }}
   {{- end }}
 spec:
   accessModes:
-  {{ toYaml .Values.runtime.persistence.accessModes }}
+  {{- toYaml .Values.runtime.persistence.accessModes | nindent 2 }}
   resources:
     requests:
       storage: "{{ .Values.runtime.persistence.size }}"
-      {{- if .Values.runtime.persistence.storageClass }}
-      {{- if (eq "-" .Values.runtime.persistence.storageClass) }}
+  {{- if .Values.runtime.persistence.storageClass }}
+  {{- if (eq "-" .Values.runtime.persistence.storageClass) }}
   storageClassName: ""
-      {{- else }}
+  {{- else }}
   storageClassName: "{{ .Values.runtime.persistence.storageClass }}"
-      {{- end }}
-      {{- end }}
+  {{- end }}
+  {{- end }}
   {{- if .Values.runtime.persistence.existingVolume }}
   volumeName: "{{ .Values.runtime.persistence.existingVolume }}"
   {{- end }}
-
 {{- end }}

@@ -84,8 +84,12 @@ runtime:
       requests:
         cpu: 500m
         memory: 512Mi
-    XRay:
+    xray:
       enabled: true
+      daemon:
+        image:
+          repository: public.ecr.aws/xray/aws-xray-daemon
+          tag: 3.3.14
   persistence:
     enabled: true
     existingClaim: ""
