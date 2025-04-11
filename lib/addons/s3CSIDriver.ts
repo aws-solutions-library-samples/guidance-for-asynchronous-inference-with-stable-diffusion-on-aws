@@ -30,8 +30,7 @@ export class s3CSIDriverAddOn extends blueprints.addons.HelmAddOn {
     const cluster = clusterInfo.cluster;
     const serviceAccount = cluster.addServiceAccount('s3-csi-driver-sa', {
       name: 's3-csi-driver-sa',
-      namespace: this.options.namespace,
-      identityType: eks.IdentityType.POD_IDENTITY
+      namespace: this.options.namespace
     });
 
     // new IAM policy to grand access to S3 bucket
