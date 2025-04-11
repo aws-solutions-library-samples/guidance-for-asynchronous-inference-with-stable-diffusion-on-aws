@@ -28,7 +28,7 @@ export const defaultProps: blueprints.addons.HelmAddOnProps & SDRuntimeAddOnProp
   name: 'sdRuntimeAddOn',
   namespace: 'sdruntime',
   release: 'sdruntime',
-  version: '1.1.1',
+  version: '1.1.3',
   repository: 'oci://public.ecr.aws/bingjiao/charts/sd-on-eks',
   values: {},
   type: "sdwebui"

@@ -19,7 +19,7 @@ spec:
   advanced:
     horizontalPodAutoscalerConfig:
       behavior:
-      {{- toYaml .Values.runtime.extraHPAConfig | nindent 8 }}
+      {{- toYaml .Values.runtime.scaling.extraHPAConfig | nindent 8 }}
   {{- end }}
   scaleTargetRef:
     name: {{ include "sdchart.fullname" . }}-inference-api
