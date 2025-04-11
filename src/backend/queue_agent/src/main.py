@@ -157,11 +157,19 @@ def main():
                 # Start handling message
                 response = {}
 
-                if runtime_type == "sdwebui":
-                    response = sdwebui.handler(api_base_url, tasktype, task_id, body, dynamic_sd_model)
+                try:
+                    if runtime_type == "sdwebui":
+                        response = sdwebui.handler(api_base_url, tasktype, task_id, body, dynamic_sd_model)
 
-                if runtime_type == "comfyui":
-                    response = comfyui.handler(api_base_url, task_id, body)
+                    if runtime_type == "comfyui":
+                        response = comfyui.handler(api_base_url, task_id, body)
+                except Exception as e:
+                    logger.error(f"Error calling handler for task {task_id}: {str(e)}")
+                    response = {
+                        "success": False,
+                        "image": [],
+                        "content": '{"code": 500, "error": "Runtime handler failed"}'
+                    }
 
                 result = []
                 rand = str(uuid.uuid4())[0:4]
