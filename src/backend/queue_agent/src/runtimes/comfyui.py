@@ -6,15 +6,29 @@ import logging
 import time
 import traceback
 import urllib.parse
-import urllib.request
 import uuid
 from typing import Optional, Dict, List, Any, Union
 
 import websocket  # NOTE: websocket-client (https://github.com/websocket-client/websocket-client)
-from aws_xray_sdk.core import xray_recorder
 from modules import http_action
 
 logger = logging.getLogger("queue-agent")
+
+# Import the safe_xray_capture decorator from main module
+try:
+    from src.main import safe_xray_capture, xray_enabled
+except ImportError:
+    try:
+        # Try alternative import path
+        from ..main import safe_xray_capture, xray_enabled
+    except ImportError:
+        # Fallback if import fails - create a simple pass-through decorator
+        logger.warning("Failed to import safe_xray_capture from main, using fallback")
+        def safe_xray_capture(name):
+            def decorator(func):
+                return func
+            return decorator
+        xray_enabled = False
 
 # Constants for websocket reconnection
 MAX_RECONNECT_ATTEMPTS = 5
@@ -324,6 +338,7 @@ def handler(api_base_url: str, task_id: str, payload: dict) -> dict:
 
     return response
 
+@safe_xray_capture('comfyui-pipeline')
 def invoke_pipeline(api_base_url: str, body) -> str:
     cf = comfyuiCaller()
     cf.setUrl(api_base_url)
