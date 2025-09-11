@@ -41,26 +41,11 @@ export default class DataPlaneStack {
     dataplaneProps: dataPlaneProps,
     props: cdk.StackProps) {
 
-    // Create minimal IAM policy for KEDA
-    const kedaPolicy = new iam.Policy(cluster.stack, 'KedaMinimalPolicy', {
-      statements: [
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: [
-            'sqs:GetQueueAttributes',
-            'sqs:ReceiveMessage',
-            'cloudwatch:GetMetricStatistics'
-          ],
-          resources: ['*']
-        })
-      ]
-    });
-
     const kedaParams: blueprints.KedaAddOnProps = {
       podSecurityContextFsGroup: 1001,
       securityContextRunAsGroup: 1001,
       securityContextRunAsUser: 1001,
-      irsaRoles: []
+      irsaRoles: ["CloudWatchFullAccess", "AmazonSQSFullAccess"]
     };
 
     const cloudWatchInsightsParams: blueprints.CloudWatchInsightsAddOnProps = {
