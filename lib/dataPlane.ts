@@ -97,6 +97,7 @@ export default class DataPlaneStack {
       new blueprints.addons.CoreDnsAddOn(),
       new blueprints.addons.KubeProxyAddOn(),
       new blueprints.addons.AwsLoadBalancerControllerAddOn(),
+      new blueprints.addons.EksPodIdentityAgentAddOn(),
       new KarpenterAddOn({ interruptionHandling: true }),
       new blueprints.addons.KedaAddOn(kedaParams),
       new blueprints.addons.CloudWatchInsights(cloudWatchInsightsParams),
@@ -144,6 +145,7 @@ const clusterProvider = new blueprints.GenericClusterProviderV2({
     "stack": cdk.Aws.STACK_NAME
   },
   defaultCapacityType: eks.DefaultCapacityType.NODEGROUP,
+  defaultCapacity: 0,
   managedNodeGroups: [
     {
       id: "system-nodegroup",
