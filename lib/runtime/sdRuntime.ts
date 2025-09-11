@@ -49,7 +49,7 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
     }
   }
 
-  @blueprints.utils.dependable(blueprints.KarpenterAddOn.name)
+  @blueprints.utils.dependable("KarpenterAddOn")
   @blueprints.utils.dependable("SharedComponentAddOn")
   @blueprints.utils.dependable("s3CSIDriverAddOn")
 
@@ -97,7 +97,7 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
         'AWSXRayDaemonWriteAccess',
       ))
 
-    const nodeRole = clusterInfo.cluster.node.findChild('karpenter-node-role') as iam.IRole
+    const nodeRole = clusterInfo.cluster.node.findChild(`${cdk.Stack.of(cluster).stackName}-karpenter-node-role`) as iam.IRole
 
     var generatedValues = {
       global: {

@@ -28,8 +28,8 @@ export const defaultProps: SharedComponentAddOnProps = {
   apiGWProps: {
     stageName: "prod",
     throttle: {
-      rateLimit: 10,
-      burstLimit: 2
+      rateLimit: 30,
+      burstLimit: 50
     }
   }
 }
