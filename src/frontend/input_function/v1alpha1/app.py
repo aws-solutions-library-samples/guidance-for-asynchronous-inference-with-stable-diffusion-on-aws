@@ -4,7 +4,10 @@
 import os
 import boto3
 import json
-import traceback
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 sns_client = boto3.client('sns')
 
@@ -60,10 +63,10 @@ def lambda_handler(event, context):
             }
 
         except Exception as e:
-            traceback.print_exc()
+            logger.error(f"Error processing request: {type(e).__name__}")
             return {
                 'statusCode': 400,
-                'body': str(e)
+                'body': "Invalid request format"
             }
     else:
         return {
@@ -72,6 +75,10 @@ def lambda_handler(event, context):
         }
 
 def validate(body: dict) -> str:
+    # Check payload size (1MB limit)
+    if len(json.dumps(body)) > 1024 * 1024:
+        return "payload too large"
+    
     result = "success"
     if 'alwayson_scripts' not in body.keys():
         result = "alwayson_scripts is missing"
@@ -82,4 +89,15 @@ def validate(body: dict) -> str:
             result = "sd_model_checkpoint is missing"
         if "id_task" not in body["alwayson_scripts"].keys():
             result = "id_task is missing"
+        
+        # Validate id_task format (alphanumeric only)
+        id_task = body["alwayson_scripts"].get("id_task", "")
+        if not isinstance(id_task, str) or not id_task.replace("-", "").replace("_", "").isalnum():
+            result = "invalid id_task format"
+            
+        # Validate task type
+        task = body["alwayson_scripts"].get("task", "")
+        if task not in ["text-to-image", "image-to-image", "extra-single-image"]:
+            result = "invalid task type"
+    
     return result
