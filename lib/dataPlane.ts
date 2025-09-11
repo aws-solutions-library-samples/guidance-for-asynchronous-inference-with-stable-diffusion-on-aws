@@ -5,14 +5,13 @@ import * as eks from "aws-cdk-lib/aws-eks";
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import SDRuntimeAddon, { SDRuntimeAddOnProps } from './runtime/sdRuntime';
 import { EbsThroughputTunerAddOn, EbsThroughputTunerAddOnProps } from './addons/ebsThroughputTuner'
 import { s3CSIDriverAddOn, s3CSIDriverAddOnProps } from './addons/s3CSIDriver'
 import { SharedComponentAddOn, SharedComponentAddOnProps } from './addons/sharedComponent';
 import { SNSResourceProvider } from './resourceProvider/sns'
 import { s3GWEndpointProvider } from './resourceProvider/s3GWEndpoint'
-import { dcgmExporterAddOn } from './addons/dcgmExporter';
+import { KarpenterAddOn } from './addons/karpenter';
 
 export interface dataPlaneProps {
   stackName: string,
@@ -98,7 +97,8 @@ export default class DataPlaneStack {
       new blueprints.addons.CoreDnsAddOn(),
       new blueprints.addons.KubeProxyAddOn(),
       new blueprints.addons.AwsLoadBalancerControllerAddOn(),
-      new blueprints.addons.KarpenterAddOn({ interruptionHandling: true }),
+      new blueprints.addons.EksPodIdentityAgentAddOn(),
+      new KarpenterAddOn({ interruptionHandling: true }),
       new blueprints.addons.KedaAddOn(kedaParams),
       new blueprints.addons.CloudWatchInsights(cloudWatchInsightsParams),
       new s3CSIDriverAddOn(s3CSIDriverAddOnParams),
@@ -107,7 +107,7 @@ export default class DataPlaneStack {
     ];
 
 // Generate SD Runtime Addon for runtime
-dataplaneProps.modelsRuntime.forEach((val, idx, array) => {
+dataplaneProps.modelsRuntime.forEach((val) => {
   const sdRuntimeParams: SDRuntimeAddOnProps = {
     modelBucketArn: dataplaneProps.modelBucketArn,
     outputSns: blueprints.getNamedResource("outputSNSTopic") as sns.ITopic,
@@ -137,24 +137,35 @@ dataplaneProps.modelsRuntime.forEach((val, idx, array) => {
   addOns.push(new SDRuntimeAddon(sdRuntimeParams, val.name))
 });
 
-// Define initial managed node group for cluster components
-const MngProps: blueprints.MngClusterProviderProps = {
-  minSize: 2,
-  maxSize: 2,
-  desiredSize: 2,
-  version: eks.KubernetesVersion.V1_31,
-  instanceTypes: [new ec2.InstanceType('m7g.large')],
-  amiType: eks.NodegroupAmiType.AL2023_ARM_64_STANDARD,
-  enableSsmPermissions: true,
-  nodeGroupTags: {
-    "Name": cdk.Aws.STACK_NAME + "-ClusterComponents",
+// Define initial managed node group for cluster components using GenericClusterProviderV2
+const clusterProvider = new blueprints.GenericClusterProviderV2({
+  version: eks.KubernetesVersion.V1_33,
+  tags: {
+    "Name": cdk.Aws.STACK_NAME + "-cluster",
     "stack": cdk.Aws.STACK_NAME
-  }
-}
+  },
+  defaultCapacityType: eks.DefaultCapacityType.NODEGROUP,
+  defaultCapacity: 0,
+  managedNodeGroups: [
+    {
+      id: "system-nodegroup",
+      minSize: 2,
+      maxSize: 2,
+      desiredSize: 2,
+      instanceTypes: [new ec2.InstanceType('m7g.large')],
+      amiType: eks.NodegroupAmiType.AL2023_ARM_64_STANDARD,
+      enableSsmPermissions: true,
+      tags: {
+        "Name": cdk.Aws.STACK_NAME + "-ClusterComponents",
+        "stack": cdk.Aws.STACK_NAME
+      }
+    }
+  ]
+});
 
 // Deploy EKS cluster with all add-ons
 const blueprint = blueprints.EksBlueprint.builder()
-  .version(eks.KubernetesVersion.V1_31)
+  .version(eks.KubernetesVersion.V1_33)
   .addOns(...addOns)
   .resourceProvider(
     blueprints.GlobalResources.Vpc,
@@ -165,35 +176,22 @@ const blueprint = blueprints.EksBlueprint.builder()
     id: 'outputS3Bucket'
   }))
   .resourceProvider("s3GWEndpoint", new s3GWEndpointProvider("s3GWEndpoint"))
-  .clusterProvider(new blueprints.MngClusterProvider(MngProps))
+  .clusterProvider(clusterProvider)
   .build(scope, id + 'Stack', props);
-/*
-  // Workaround for permission denied when creating cluster
-    const handler = blueprint.node.tryFindChild('@aws-cdk--aws-eks.KubectlProvider')!
-      .node.tryFindChild('Handler')! as cdk.aws_lambda.Function
 
-    (
-      blueprint.node.tryFindChild('@aws-cdk--aws-eks.KubectlProvider')!
-        .node.tryFindChild('Provider')!
-        .node.tryFindChild('framework-onEvent')!
-        .node.tryFindChild('ServiceRole')!
-        .node.tryFindChild('DefaultPolicy') as cdk.aws_iam.Policy
-    )
-      .addStatements(new cdk.aws_iam.PolicyStatement({
-        effect: cdk.aws_iam.Effect.ALLOW,
-        actions: ["lambda:GetFunctionConfiguration"],
-        resources: [handler.functionArn]
-      }))
- */
   // Provide static output name for cluster
     const cluster = blueprint.getClusterInfo().cluster
-    const clusterNameCfnOutput = cluster.node.findChild('ClusterName') as cdk.CfnOutput;
-    clusterNameCfnOutput.overrideLogicalId('ClusterName')
+    try {
+        const clusterNameCfnOutput = cluster.node.findChild('ClusterName') as cdk.CfnOutput;
+        clusterNameCfnOutput.overrideLogicalId('ClusterName')
 
-    const configCommandCfnOutput = cluster.node.findChild('ConfigCommand') as cdk.CfnOutput;
-    configCommandCfnOutput.overrideLogicalId('ConfigCommand')
+        const configCommandCfnOutput = cluster.node.findChild('ConfigCommand') as cdk.CfnOutput;
+        configCommandCfnOutput.overrideLogicalId('ConfigCommand')
 
-    const getTokenCommandCfnOutput = cluster.node.findChild('GetTokenCommand') as cdk.CfnOutput;
-    getTokenCommandCfnOutput.overrideLogicalId('GetTokenCommand')
+        const getTokenCommandCfnOutput = cluster.node.findChild('GetTokenCommand') as cdk.CfnOutput;
+        getTokenCommandCfnOutput.overrideLogicalId('GetTokenCommand')
+    } catch (error) {
+      console.warn('Some cluster outputs not found, skipping override:', error);
+    }
   }
 }

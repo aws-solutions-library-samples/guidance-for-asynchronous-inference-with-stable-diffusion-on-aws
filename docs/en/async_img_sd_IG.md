@@ -125,7 +125,7 @@ The main services and their pricing for usage related to the number of images ar
 
 | **AWS Service**  | **Billing Dimension** | **Quantity per 1M Images** | **Unit Price \[USD\]** | **Total \[USD\]** |
 |-----------|------------|------------|------------|------------|
-| Amazon EC2 | g5.2 xlarge instance, Spot instance per hour  | 416.67 | \$ 0.4968 | \$ 207 |
+| Amazon EC2 | g5.2xlarge instance, Spot instance per hour  | 416.67 | \$ 0.6003 | \$ 250.16 |
 | Amazon API Gateway | Per 1M REST API requests  | 1 | \$ 3.50 | \$ 3.50 |
 | AWS Lambda | Per GB-second  | 12,500 | \$ 0.0000166667 | \$ 0.21 |
 | AWS Lambda | Per 1M requests  | 1 | \$ 0.20 | \$ 0.20 |
@@ -134,17 +134,17 @@ The main services and their pricing for usage related to the number of images ar
 | Amazon SQS | Per 1M requests  | 2 | \$ 0.40 | \$ 0.80 |
 | Amazon S3 | Per 1K PUT requests  | 2,000 | \$ 0.005 | \$ 10.00 |
 | Amazon S3 | Per GB per month  | 143.05\*** | \$ 0.023 | \$ 3.29 |
-| **Total, 1M images** | &nbsp; | &nbsp; | &nbsp; | **\$226.18** |
+| **Total, 1M images** | &nbsp; | &nbsp; | &nbsp; | **\$269.34** |
 
 The fixed costs unrelated to the number of images, with the main services and their pricing listed below (per month):
 
 | **AWS Service**  | Billing Dimension | Quantity per Month | Unit Price \[USD\] | Total \[USD\]
 |-----------|------------|------------|------------|------------|
 | Amazon EKS | Cluster  | 1 | \$ 72.00 | \$ 72.00 |
-| Amazon EC2 | m5.large instance, On-Demand instance per hour  | 1440 | \$ 0.0960 | \$ 138.24 |
-| **Total, month** | &nbsp; | &nbsp; | &nbsp; | **\$210.24** |
+| Amazon EC2 | m7g.large instance, On-Demand instance per hour  | 1440 | \$ 0.1008 | \$ 145.15 |
+| **Total, month** | &nbsp; | &nbsp; | &nbsp; | **\$217.15** |
 
-\* Calculated based on an average request duration of 1.5 seconds and the average Spot instance pricing across all Availability Zones in the US West (Oregon) Region from January 29, 2024, to April 28, 2024.
+\* Calculated based on an average request duration of 1.5 seconds and the average Spot instance pricing across all Availability Zones in the US West (Oregon) Region from September 4, 2025, to September 11, 2025.
 <br/>
 \*\* Calculated based on an average request size of 16 KB.
 <br/>
@@ -288,7 +288,7 @@ You need to fully understand and comply with the license terms of the Stable Dif
 
   **Currently, those parameters of a new VPC cannot be customized**.
 
-- In the current version, this guidance can only be deployed on a new EKS cluster with a fixed version of `1.28`. We will update the cluster version as new Amazon EKS versions are released.
+- In the current version, this guidance can only be deployed on a new EKS cluster with a fixed version of `1.33`. We will update the cluster version as new Amazon EKS versions are released.
 
 ### Deployment process overview
 
@@ -861,7 +861,7 @@ modelsRuntime:
           snapshotID: snap-1234567890 # The EBS snapshot ID will be automatically filled in here
       provisioner:
         instanceType:
-        - "g5.xlarge"
+        - "g6.2xlarge"
         - "g5.2xlarge"
         capacityType:
           onDemand: true
