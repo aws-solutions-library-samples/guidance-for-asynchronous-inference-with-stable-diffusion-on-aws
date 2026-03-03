@@ -16,6 +16,12 @@ This project shows how to use serverless architecture and container services to 
 - Saving up to 70% with [AWS GPU](https://aws.amazon.com/ec2/instance-types/g5/) spot EC2 instances
 - [Bottlerocket OS](https://aws.amazon.com/bottlerocket/) with IMDSv2 enforced for enhanced security
 
+## Deployment Documentation
+
+Please see detailed Implementation Guides here:
+- [English](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
+- [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
+
 ## Architecture diagram
 
 <!-- img src="./low-latency-high-bandwidth-updated-architecture.jpg" width="90%" -->
@@ -35,7 +41,6 @@ Figure 1: Asynchronous Image Generation with Stable Diffusion on AWS reference a
 6. Queue agents (software component created for this Guidance) receive messages from SQS model processing queues and convert them to inputs for SD Runtime APIs calls.
 7. Queue agents call SD Runtime APIs, receive and decode responses, and save the generated images to designated Amazon S3 buckets.
 8. Queue agents send notifications to the designated SNS topic from the pods, user receives notifications from SNS and can access images in S3 buckets.
-
 
 ### AWS services in this Guidance
 
@@ -89,11 +94,6 @@ The fixed costs unrelated to the number of images, with the main services and th
 
 Please note that these are estimated costs for reference only. The actual cost may vary depending on the model you use, task parameters, current Spot instance pricing, and other factors.
 
-## Deployment Documentation
-
-Please see detailed Implementation Guides here:
-- [English](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws.html)
-- [Chinese 简体中文 ](https://aws-solutions-library-samples.github.io/ai-ml/asynchronous-image-generation-with-stable-diffusion-on-aws-zh.html)
 
 ## Security
 

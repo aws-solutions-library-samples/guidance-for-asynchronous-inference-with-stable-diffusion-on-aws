@@ -128,9 +128,9 @@ def checker(environment):
                 msg = json.loads(payload['Message'])
                 succeed = msg['result']
                 task_id = msg['id']
-                logger.debug(f'Received task with {task_id}')
+                logger.debug('Received task')
                 if task_id in stats.keys():
-                    logger.debug(f'Processing {task_id}')
+                    logger.debug('Processing task')
                     time = parser.parse(payload["Timestamp"]).now(datetime.timezone.utc).timestamp()
                     time_usage = int((time - stats[task_id]['start_time']) * 1000)
                     if succeed:

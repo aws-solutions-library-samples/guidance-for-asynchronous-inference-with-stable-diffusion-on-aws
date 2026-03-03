@@ -100,6 +100,7 @@ export default class DataPlaneStack {
       new blueprints.addons.CoreDnsAddOn(),
       new blueprints.addons.KubeProxyAddOn(),
       new blueprints.addons.AwsLoadBalancerControllerAddOn(),
+      new blueprints.addons.EksPodIdentityAgentAddOn(),
       new blueprints.addons.KarpenterV1AddOn({ interruptionHandling: true }),
       new blueprints.addons.KedaAddOn(kedaParams),
       new blueprints.addons.CloudWatchInsights(cloudWatchInsightsParams),

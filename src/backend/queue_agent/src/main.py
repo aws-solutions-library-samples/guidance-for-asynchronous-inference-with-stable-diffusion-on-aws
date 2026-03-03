@@ -190,7 +190,7 @@ def process_message(message, topic, s3_bucket, runtime_type, runtime_name, api_b
     try:
         payload = json.loads(json.loads(message.body)['Message'])
         metadata = payload["metadata"]
-        task_id = metadata["id"]
+        task_id = str(metadata["id"])[:64]  # Limit task ID length
 
         logger.info(f"Received task {task_id}, processing")
 
@@ -274,9 +274,9 @@ def process_message(message, topic, s3_bucket, runtime_type, runtime_name, api_b
 
 def print_env() -> None:
     logger.info(f'AWS_DEFAULT_REGION={aws_default_region}')
-    logger.info(f'SQS_QUEUE_URL={sqs_queue_url}')
-    logger.info(f'SNS_TOPIC_ARN={sns_topic_arn}')
-    logger.info(f'S3_BUCKET={s3_bucket}')
+    logger.info(f'SQS_QUEUE_URL=***masked***')
+    logger.info(f'SNS_TOPIC_ARN=***masked***')
+    logger.info(f'S3_BUCKET=***masked***')
     logger.info(f'RUNTIME_TYPE={runtime_type}')
     logger.info(f'RUNTIME_NAME={runtime_name}')
     logger.info(f'X-Ray Tracing: {"Disabled" if DISABLE_XRAY else "Enabled"}')

@@ -28,8 +28,8 @@ export const defaultProps: SharedComponentAddOnProps = {
   apiGWProps: {
     stageName: "prod",
     throttle: {
-      rateLimit: 10,
-      burstLimit: 2
+      rateLimit: 30,
+      burstLimit: 50
     }
   }
 }
@@ -52,7 +52,8 @@ export class SharedComponentAddOn implements ClusterAddOn {
         "SNS_TOPIC_ARN": this.options.inputSns.topicArn,
         "S3_OUTPUT_BUCKET": this.options.outputBucket.bucketName
       },
-      tracing: lambda.Tracing.ACTIVE
+      tracing: lambda.Tracing.ACTIVE,
+      reservedConcurrentExecutions: 100
     });
 
     const v1Alpha2Parser = new lambda.Function(cluster.stack, 'v1Alpha2ParserFunction', {
@@ -63,7 +64,8 @@ export class SharedComponentAddOn implements ClusterAddOn {
         "SNS_TOPIC_ARN": this.options.inputSns.topicArn,
         "S3_OUTPUT_BUCKET": this.options.outputBucket.bucketName
       },
-      tracing: lambda.Tracing.ACTIVE
+      tracing: lambda.Tracing.ACTIVE,
+      reservedConcurrentExecutions: 100
     });
 
     this.options.inputSns.grantPublish(v1Alpha1Parser);
@@ -83,6 +85,12 @@ export class SharedComponentAddOn implements ClusterAddOn {
         stageName: this.options.apiGWProps!.stageName,
         tracingEnabled: true,
         metricsEnabled: true,
+        methodOptions: {
+          '/*/*': {
+            throttlingRateLimit: 1000,
+            throttlingBurstLimit: 2000
+          }
+        }
       }
     });
 
