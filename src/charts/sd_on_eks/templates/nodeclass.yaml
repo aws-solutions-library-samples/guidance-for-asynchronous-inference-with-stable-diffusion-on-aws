@@ -33,7 +33,11 @@ spec:
     httpEndpoint: enabled
     httpProtocolIPv6: disabled
     httpPutResponseHopLimit: 2
-    httpTokens: optional
+    httpTokens: required
+
+  {{- if .Values.karpenter.nodeTemplate.instanceStorePolicy }}
+  instanceStorePolicy: {{ .Values.karpenter.nodeTemplate.instanceStorePolicy }}
+  {{- end }}
 
   blockDeviceMappings:
     - deviceName: /dev/xvda

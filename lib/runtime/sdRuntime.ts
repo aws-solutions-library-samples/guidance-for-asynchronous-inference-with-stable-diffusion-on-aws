@@ -6,7 +6,6 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { aws_sns_subscriptions } from "aws-cdk-lib";
-import * as lodash from "lodash";
 import { createNamespace }  from "../utils/namespace"
 
 export interface SDRuntimeAddOnProps extends blueprints.addons.HelmAddOnUserProps {
@@ -23,12 +22,17 @@ export interface SDRuntimeAddOnProps extends blueprints.addons.HelmAddOnUserProp
   extraValues?: object
 }
 
+const DEFAULT_IMAGE_REPOS: Record<string, string> = {
+  sdwebui: "public.ecr.aws/bingjiao/sd-on-eks/sdwebui",
+  comfyui: "public.ecr.aws/bingjiao/sd-on-eks/comfyui",
+};
+
 export const defaultProps: blueprints.addons.HelmAddOnProps & SDRuntimeAddOnProps = {
   chart: 'sd-on-eks',
   name: 'sdRuntimeAddOn',
   namespace: 'sdruntime',
   release: 'sdruntime',
-  version: '1.1.3',
+  version: '1.2.0',
   repository: 'oci://public.ecr.aws/bingjiao/charts/sd-on-eks',
   values: {},
   type: "sdwebui"
@@ -42,28 +46,19 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
   constructor(props: SDRuntimeAddOnProps, id?: string) {
     super({ ...defaultProps, ...props });
     this.options = this.props as SDRuntimeAddOnProps;
-    if (id) {
-      this.id = id!.toLowerCase()
-    } else {
-      this.id = 'sdruntime'
-    }
+    this.id = id ? id.toLowerCase() : 'sdruntime';
   }
 
-  @blueprints.utils.dependable(blueprints.KarpenterAddOn.name)
+  @blueprints.utils.dependable(blueprints.KarpenterV1AddOn.name)
   @blueprints.utils.dependable("SharedComponentAddOn")
-  @blueprints.utils.dependable("s3CSIDriverAddOn")
+  @blueprints.utils.dependable("S3CSIDriverAddOn")
 
   deploy(clusterInfo: blueprints.ClusterInfo): Promise<Construct> {
     const cluster = clusterInfo.cluster
 
     this.props.name = this.id + 'Addon'
     this.props.release = this.id
-
-    if (this.options.targetNamespace) {
-      this.props.namespace = this.options.targetNamespace.toLowerCase()
-    } else {
-      this.props.namespace = "default"
-    }
+    this.props.namespace = this.options.targetNamespace?.toLowerCase() || "default";
 
     const ns = createNamespace(this.id+"-"+this.props.namespace+"-namespace-struct", this.props.namespace, cluster, true)
 
@@ -87,7 +82,6 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
     const inputQueue = new sqs.Queue(cluster.stack, 'InputQueue' + this.id);
     inputQueue.grantConsumeMessages(runtimeSA);
 
-
     this.options.outputBucket!.grantWrite(runtimeSA);
     this.options.outputBucket!.grantPutAcl(runtimeSA);
     this.options.outputSns!.grantPublish(runtimeSA);
@@ -99,7 +93,12 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
 
     const nodeRole = clusterInfo.cluster.node.findChild('karpenter-node-role') as iam.IRole
 
-    var generatedValues = {
+    // Resolve image repository: use extraValues override or default per runtime type
+    const extraImageRepo = (this.options.extraValues as Record<string, any>)
+      ?.runtime?.inferenceApi?.image?.repository;
+    const imageRepo = extraImageRepo || DEFAULT_IMAGE_REPOS[this.options.type] || DEFAULT_IMAGE_REPOS.sdwebui;
+
+    let generatedValues: Record<string, any> = {
       global: {
         awsRegion: cdk.Stack.of(cluster).region,
         stackName: cdk.Stack.of(cluster).stackName,
@@ -108,6 +107,9 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
       runtime: {
         type: this.options.type,
         serviceAccountName: runtimeSA.serviceAccountName,
+        inferenceApi: {
+          image: { repository: imageRepo },
+        },
         queueAgent: {
           s3Bucket: this.options.outputBucket!.bucketName,
           snsTopicArn: this.options.outputSns!.topicArn,
@@ -128,53 +130,13 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
         }
       }
     }
-    // Temp change: set image repo to ECR Public
-    if (this.options.type == "sdwebui") {
-      var imagerepo: string
-      if (!(lodash.get(this.options, "extraValues.runtime.inferenceApi.image.repository"))) {
-        imagerepo = "public.ecr.aws/bingjiao/sd-on-eks/sdwebui"
-      } else {
-        imagerepo = lodash.get(this.options, "extraValues.runtime.inferenceApi.image.repository")!
-      }
-      var sdWebUIgeneratedValues =  {
-        runtime: {
-          inferenceApi: {
-            image: {
-              repository: imagerepo
-            },
-            modelFilename: this.options.sdModelCheckpoint
-          },
-          queueAgent: {
-            dynamicModel: this.options.dynamicModel
-          }
-        }
-      }
 
-      generatedValues = lodash.merge(generatedValues, sdWebUIgeneratedValues)
+    if (this.options.type === "sdwebui") {
+      generatedValues.runtime.inferenceApi.modelFilename = this.options.sdModelCheckpoint;
+      generatedValues.runtime.queueAgent.dynamicModel = this.options.dynamicModel;
     }
 
-    if (this.options.type == "comfyui") {
-      var imagerepo: string
-      if (!(lodash.get(this.options, "extraValues.runtime.inferenceApi.image.repository"))) {
-        imagerepo = "public.ecr.aws/bingjiao/sd-on-eks/comfyui"
-      } else {
-        imagerepo = lodash.get(this.options, "extraValues.runtime.inferenceApi.image.repository")!
-      }
-
-      var comfyUIgeneratedValues =  {
-        runtime: {
-          inferenceApi: {
-            image: {
-              repository: imagerepo
-            },
-          }
-        }
-      }
-
-      generatedValues = lodash.merge(generatedValues, comfyUIgeneratedValues)
-    }
-
-    if (this.options.type == "sdwebui" && this.options.sdModelCheckpoint) {
+    if (this.options.type === "sdwebui" && this.options.sdModelCheckpoint) {
       // Legacy and new routing, use CFN as a workaround since L2 construct doesn't support OR
       const cfnSubscription = new sns.CfnSubscription(cluster.stack, this.id+'CfnSubscription', {
         protocol: 'sqs',
@@ -206,19 +168,6 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
           }
         }
       }))
-
-
-/* It should like this...
-       this.options.inputSns!.addSubscription(new aws_sns_subscriptions.SqsSubscription(inputQueue, {
-        filterPolicy: {
-          : sns.SubscriptionFilter.stringFilter({
-            allowlist: [this.options.sdModelCheckpoint!]
-          }),
-          runtime: sns.SubscriptionFilter.stringFilter({
-            allowlist: [this.id]
-          })
-        }
-      })) */
     } else {
       // New version routing only
       this.options.inputSns!.addSubscription(new aws_sns_subscriptions.SqsSubscription(inputQueue, {
@@ -231,10 +180,24 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
       }))
     }
 
-    const values = lodash.merge(this.props.values, this.options.extraValues, generatedValues)
+    const values = this.deepMerge(this.props.values ?? {}, this.options.extraValues ?? {}, generatedValues);
 
     const chart = this.addHelmChart(clusterInfo, values, true);
 
     return Promise.resolve(chart);
+  }
+
+  private deepMerge(...objects: Record<string, any>[]): Record<string, any> {
+    const result: Record<string, any> = {};
+    for (const obj of objects) {
+      for (const key of Object.keys(obj)) {
+        if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+          result[key] = this.deepMerge(result[key] || {}, obj[key]);
+        } else {
+          result[key] = obj[key];
+        }
+      }
+    }
+    return result;
   }
 }

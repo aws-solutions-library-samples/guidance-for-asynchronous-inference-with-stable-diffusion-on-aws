@@ -26,19 +26,31 @@ karpenter:
     subnetSelector: {}
     tags: {}
     amiFamily: Bottlerocket
+    instanceStorePolicy: RAID0
     osVolume:
       volumeSize: 10Gi
       volumeType: gp3
       deleteOnTermination: true
       iops: 3000
       throughput: 125
-    dataVolume:
-      volumeSize: 150Gi
-      volumeType: gp3
-      deleteOnTermination: true
-      iops: 4000
-      throughput: 1000
-    userData: ""
+    dataVolume: {}
+    userData: |
+      [settings.container-runtime]
+      snapshotter = "soci"
+      [settings.container-runtime-plugins.soci-snapshotter]
+      pull-mode = "parallel-pull-unpack"
+      [settings.container-runtime-plugins.soci-snapshotter.parallel-pull-unpack]
+      max-concurrent-downloads-per-image = 10
+      concurrent-download-chunk-size = "16mb"
+      max-concurrent-unpacks-per-image = 10
+      discard-unpacked-layers = true
+      [settings.bootstrap-commands.k8s-ephemeral-storage]
+      commands = [
+          ["apiclient", "ephemeral-storage", "init"],
+          ["apiclient", "ephemeral-storage", "bind", "--dirs", "/var/lib/containerd", "/var/lib/kubelet", "/var/log/pods", "/var/lib/soci-snapshotter"]
+      ]
+      essential = true
+      mode = "always"
 runtime:
   type: "sdwebui"
   labels: {}

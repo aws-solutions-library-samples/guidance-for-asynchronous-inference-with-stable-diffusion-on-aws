@@ -1,5 +1,8 @@
 stackName: sdoneks
-modelBucketArn: arn:aws:s3:::dummy-bucket
+modelBucketArn: arn:aws:s3:::sdoneks-model-bucket-51a6
+clusterComponents:
+  instanceType: m7g.large
+  desiredCount: 2
 APIGW:
   stageName: dev
   throttle:
@@ -8,19 +11,17 @@ APIGW:
 modelsRuntime:
 - name: sdruntime
   namespace: default
-  modelFilename: v1-5-pruned-emaonly.safetensors
+  modelFilename: sd_xl_turbo_1.0.safetensors
   dynamicModel: false
   type: sdwebui
   extraValues:
     karpenter:
       nodeTemplate:
         amiFamily: Bottlerocket
-        # dataVolume:
-        #  snapshotID: snap-0123456789
       provisioner:
         instanceType:
-        - g6.xlarge
         - g6.2xlarge
+        - g5.2xlarge
         capacityType:
           onDemand: true
           spot: true
@@ -28,4 +29,5 @@ modelsRuntime:
       scaling:
         queueLength: 10
         minReplicaCount: 0
+        maxReplicaCount: 5
         cooldownPeriod: 300

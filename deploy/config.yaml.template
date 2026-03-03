@@ -18,8 +18,12 @@ modelsRuntime:
     karpenter:
       nodeTemplate:
         amiFamily: Bottlerocket
+$(if [ -n "${SNAPSHOT_ID}" ]; then
+cat <<SNAPEOF
         dataVolume:
           snapshotID: ${SNAPSHOT_ID}
+SNAPEOF
+fi)
       provisioner:
         instanceType:
         - "g6.2xlarge"

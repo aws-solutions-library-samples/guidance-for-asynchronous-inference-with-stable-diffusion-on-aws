@@ -2,8 +2,8 @@
 
 set -e
 
-SHORTOPTS="h,n:,R:,d,b:,s:,r:,t:,T"
-LONGOPTS="help,stack-name:,region:,dry-run,bucket:,snapshot:,runtime-name:,runtime-type:,skip-tools"
+SHORTOPTS="h,n:,R:,d,b:,s:,r:,t:,T,S"
+LONGOPTS="help,stack-name:,region:,dry-run,bucket:,snapshot:,runtime-name:,runtime-type:,skip-tools,with-snapshot"
 ARGS=$(getopt --options $SHORTOPTS --longoptions $LONGOPTS -- "$@" )
 
 eval set -- "$ARGS"
@@ -22,6 +22,7 @@ do
           printf "  -s, --snapshot               EBS snapshot ID with container image. If not specified, EBS snapshot will be automatically generated. \n"
           printf "  -r, --runtime-name           Runtime name. (Default: sdruntime) \n"
           printf "  -t, --runtime-type           Runtime type. Only 'sdwebui' and 'comfyui' is accepted. (Default: sdwebui) \n"
+          printf "  -S, --with-snapshot          Enable EBS snapshot creation for container image caching. Default: disabled (uses SOCI Parallel Pull + instance store). \n"
           exit 0
           ;;
         -n|--stack-name)
@@ -60,6 +61,10 @@ do
           fi
           shift 2
           ;;
+        -S|--with-snapshot)
+          SKIP_SNAPSHOT=false
+          shift
+          ;;
         --)
           shift
           break
@@ -80,6 +85,7 @@ RUNTIME_NAME=${RUNTIME_NAME:-"sdruntime"}
 declare -l RUNTIME_TYPE=${RUNTIME_TYPE:-"sdwebui"}
 INSTALL_TOOLS=${INSTALL_TOOLS:-true}
 DEPLOY=${DEPLOY:-true}
+SKIP_SNAPSHOT=${SKIP_SNAPSHOT:-true}
 SDWEBUI_IMAGE=public.ecr.aws/bingjiao/sd-on-eks/sdwebui:latest
 COMFYUI_IMAGE=public.ecr.aws/bingjiao/sd-on-eks/comfyui:latest
 QUEUE_AGENT_IMAGE=public.ecr.aws/bingjiao/sd-on-eks/queue-agent:latest
@@ -104,8 +110,12 @@ fi
 
 # Step 3: Create EBS Snapshot
 
-printf "Step 3: Creating EBS snapshot for faster launching...(This step will last for 15-30 min) \n"
-if [ -z "$SNAPSHOT_ID" ]; then
+printf "Step 3: EBS snapshot configuration... \n"
+if [ "${SKIP_SNAPSHOT}" = "true" ]; then
+  printf "Skipping EBS snapshot creation (using SOCI Parallel Pull + instance store for fast startup)... \n"
+  SNAPSHOT_ID=""
+elif [ -z "$SNAPSHOT_ID" ]; then
+  printf "Creating EBS snapshot for faster launching...(This step will last for 15-30 min) \n"
   cd "${SCRIPTPATH}"/..
   git submodule update --init --recursive
   SNAPSHOT_ID=$(utils/bottlerocket-images-cache/snapshot.sh -s 100 -r "${AWS_DEFAULT_REGION}" -q ${SDWEBUI_IMAGE},${COMFYUI_IMAGE},${QUEUE_AGENT_IMAGE})

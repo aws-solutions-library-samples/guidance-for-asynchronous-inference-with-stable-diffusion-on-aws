@@ -28,6 +28,7 @@ The *Guidance for Asynchronous Image Generation with Stable Diffusion on AWS* pr
 - Event-driven architecture
 - Autoscaling of pods based on queue length using [KEDA](https://keda.sh/){:target="_blank"}
 - Automatic Amazon EKS compute Node EC2 scaling using [Karpenter](https://karpenter.sh/){:target="_blank"}
+- SOCI Parallel Pull for fast container image startup
 - New inference EKS compute nodes provisioned within 2 minutes
 - Up to 70% cost savings using GPU Spot instances for compute nodes
 - Support for multiple community Stable Diffusion runtimes
@@ -91,7 +92,7 @@ This section shows an architecture diagram for the components deployed with This
 1. A user or an application sends a prompt to [Amazon API Gateway](https://aws.amazon.com/api-gateway/){:target="_blank"} that acts as an endpoint for the overall Guidance, including authentication. [AWS Lambda](https://aws.amazon.com/lambda/){:target="_blank"} function validates the requests, publishes them to the designated [Amazon Simple Notification Service](https://aws.amazon.com/sns/){:target="_blank"} (Amazon SNS) topic, and immediately returns a response.
 2. Amazon SNS publishes the message to [Amazon Simple Queue Service](https://aws.amazon.com/sqs/){:target="_blank"} (Amazon SQS) queues. Each message contains a Stable Diffusion (SD) runtime name attribute and will be delivered to the queues with matching SD runtime.
 3. In the [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/){:target="_blank"}(Amazon EKS) cluster, the previously deployed open source [Kubernetes Event Driven Auto-Scaler (KEDA)](https://keda.sh){:target="_blank"} scales up new pods to process the incoming messages from SQS model processing queues.
-4. In the Amazon EKS cluster, the previously deployed open source Kubernetes auto-scaler, [Karpenter](https://karpenter.sh){:target="_blank"}, launches new compute nodes based on GPU [Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/){:target="_blank"} (Amazon EC2) instances (such as g4, g5, and p4) to schedule pending pods. The instances use pre-cached SD Runtime images and are based on [Bottlerocket OS](https://aws.amazon.com/bottlerocket/){:target="_blank"} for fast boot. The instance can be launched with on-demand or [spot](https://aws.amazon.com/ec2/spot){:target="_blank"} pricing model.
+4. In the Amazon EKS cluster, the previously deployed open source Kubernetes auto-scaler, [Karpenter](https://karpenter.sh){:target="_blank"}, launches new compute nodes based on GPU [Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/){:target="_blank"} (Amazon EC2) instances (such as g4, g5, and p4) to schedule pending pods. The instances use SOCI Parallel Pull with NVMe instance store for fast container startup, or optionally pre-cached EBS snapshots, and are based on [Bottlerocket OS](https://aws.amazon.com/bottlerocket/){:target="_blank"} for fast boot. The instance can be launched with on-demand or [spot](https://aws.amazon.com/ec2/spot){:target="_blank"} pricing model.
 5. Stable Diffusion Runtimes load ML model files from [Amazon Simple Storage Service](https://aws.amazon.com/efs/){:target="_blank"} (Amazon S3) via [Mountpoint for Amazon S3 CSI Driver](https://github.com/awslabs/mountpoint-s3-csi-driver){:target="_blank"} on runtime initialization or on demand.
 6. Queue agents (a software component created for This guidance) receive messages from SQS model processing queues and convert them to inputs for SD Runtime API calls.
 7. Queue agents call SD Runtime APIs, receive and decode responses, and save the generated images to designated Amazon S3 buckets.
@@ -116,8 +117,8 @@ This section shows an architecture diagram for the components deployed with This
 
 ## Cost
 
-You are responsible for the cost of the AWS services used while running This guidance. As of April 2024, the cost of running this
-Guidance with the default settings in the `us-west-2` (Oregon) for one month and generating one million images would cost approximately **$436.72** (excluding free tiers).
+You are responsible for the cost of the AWS services used while running This guidance. As of March 2026, the cost of running this
+Guidance with the default settings in the `us-west-2` (Oregon) for one month and generating one million images would cost approximately **$430** (excluding free tiers).
 
 We recommend creating a [budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-create.html){:target="_blank"} through [AWS Cost Explorer](http://aws.amazon.com/aws-cost-management/aws-cost-explorer/){:target="_blank"} to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in This guidance.
 
@@ -125,7 +126,7 @@ The main services and their pricing for usage related to the number of images ar
 
 | **AWS Service**  | **Billing Dimension** | **Quantity per 1M Images** | **Unit Price \[USD\]** | **Total \[USD\]** |
 |-----------|------------|------------|------------|------------|
-| Amazon EC2 | g5.2 xlarge instance, Spot instance per hour  | 416.67 | \$ 0.4968 | \$ 207 |
+| Amazon EC2 | g5.2xlarge or g6.2xlarge instance, Spot instance per hour  | 416.67 | \$ 0.5300 | \$ 221 |
 | Amazon API Gateway | Per 1M REST API requests  | 1 | \$ 3.50 | \$ 3.50 |
 | AWS Lambda | Per GB-second  | 12,500 | \$ 0.0000166667 | \$ 0.21 |
 | AWS Lambda | Per 1M requests  | 1 | \$ 0.20 | \$ 0.20 |
@@ -134,17 +135,17 @@ The main services and their pricing for usage related to the number of images ar
 | Amazon SQS | Per 1M requests  | 2 | \$ 0.40 | \$ 0.80 |
 | Amazon S3 | Per 1K PUT requests  | 2,000 | \$ 0.005 | \$ 10.00 |
 | Amazon S3 | Per GB per month  | 143.05\*** | \$ 0.023 | \$ 3.29 |
-| **Total, 1M images** | &nbsp; | &nbsp; | &nbsp; | **\$226.18** |
+| **Total, 1M images** | &nbsp; | &nbsp; | &nbsp; | **\$240** |
 
 The fixed costs unrelated to the number of images, with the main services and their pricing listed below (per month):
 
 | **AWS Service**  | Billing Dimension | Quantity per Month | Unit Price \[USD\] | Total \[USD\]
 |-----------|------------|------------|------------|------------|
 | Amazon EKS | Cluster  | 1 | \$ 72.00 | \$ 72.00 |
-| Amazon EC2 | m5.large instance, On-Demand instance per hour  | 1440 | \$ 0.0960 | \$ 138.24 |
-| **Total, month** | &nbsp; | &nbsp; | &nbsp; | **\$210.24** |
+| Amazon EC2 | m7g.large instance, On-Demand instance per hour  | 1440 | \$ 0.0816 | \$ 117.50 |
+| **Total, month** | &nbsp; | &nbsp; | &nbsp; | **\$189.50** |
 
-\* Calculated based on an average request duration of 1.5 seconds and the average Spot instance pricing across all Availability Zones in the US West (Oregon) Region from January 29, 2024, to April 28, 2024.
+\* Calculated based on an average request duration of 1.5 seconds and the average Spot instance pricing across all Availability Zones in the US West (Oregon) Region in March 2026.
 <br/>
 \*\* Calculated based on an average request size of 16 KB.
 <br/>
@@ -282,13 +283,11 @@ You need to fully understand and comply with the license terms of the Stable Dif
     - CIDR `10.0.0.0/16`
     - 3 public subnets in different availability zones, with size `/19`
     - 3 private subnets in different availability zones, with size `/19`
-    - 3 NAT gateways (placed in public subnets)
+    - 1 NAT gateway (placed in a public subnet) for cost savings
     - 1 Internet gateway
     - Corresponding route tables and security groups
 
-  **Currently, those parameters of a new VPC cannot be customized**.
-
-- In the current version, this guidance can only be deployed on a new EKS cluster with a fixed version of `1.28`. We will update the cluster version as new Amazon EKS versions are released.
+- In the current version, this guidance deploys a new EKS cluster with Kubernetes version `1.35`.
 
 ### Deployment process overview
 
@@ -329,7 +328,7 @@ This script will:
 
 * Install the necessary runtimes and tools.
 * Create an S3 bucket, download the Stable Diffusion XL-Turbo foundation model from [HuggingFace](https://huggingface.co/stabilityai/sdxl-turbo){:target="_blank"}, and place it in the bucket.
-* Create an EBS snapshot containing the SD Web UI image using our provided sample image.
+* *(Optional)* Create an EBS snapshot for container image caching, or use the default SOCI Parallel Pull + instance store for fast startup.
 * Create a Stable Diffusion guidance with the SD Web UI runtime.
 
 {: .new-title }
@@ -357,6 +356,7 @@ The deployment script provides some parameters for you to customize the deployed
 * `-d, --dry-run`: Only generate configuration files; do not perform deployment.
 * `-b, --bucket`: Specify an existing S3 bucket name for storing models. This S3 bucket must already exist and be in the same Region as the guidance.
 * `-s, --snapshot`: Specify an existing EBS snapshot ID. You can build the EBS snapshot yourself by following the documentation below.
+* `-S, --with-snapshot`: Enable EBS snapshot creation for container image caching. Default: disabled (uses SOCI Parallel Pull + instance store).
 * `-r, --runtime-name`: Specify the name of the deployed runtime, affecting the name used for API calls. Default is `sdruntime`.
 * `-t, --runtime-type`: Specify the type of the deployed runtime, only accepting `sdwebui` and `comfyui`. Default is `sdwebui`.
 
@@ -610,6 +610,8 @@ modelsRuntime:
 
 #### Image Cache Building
 
+**Note:** EBS snapshot-based image caching is now optional. By default, the guidance uses [SOCI Parallel Pull](https://aws.amazon.com/blogs/containers/introducing-seekable-oci-parallel-pull-mode-for-amazon-eks/) with NVMe instance store for fast container startup (up to 60% faster image pulls). If you prefer EBS snapshot-based caching, follow the instructions below.
+
 By pre-caching the container image as an EBS snapshot, you can optimize the startup speed of compute instances. When launching new instances, the instance's data volume will have the container image cache pre-loaded, eliminating the need to pull from the image repository.
 
 The EBS snapshot should be created before deploying the guidance. We provide a script for building the EBS snapshot.
@@ -635,6 +637,16 @@ cd utils/bottlerocket-images-cache
 After the script completes, it will output the EBS snapshot ID (in the format `snap-0123456789`). You can apply this snapshot during deployment.
 
 For more details about this script, refer to the [GitHub repository](https://github.com/aws-samples/bottlerocket-images-cache){:target="_blank"}.
+
+### SOCI Parallel Pull and Instance Store (Default)
+
+By default, GPU nodes use [SOCI Parallel Pull](https://aws.amazon.com/blogs/containers/introducing-seekable-oci-parallel-pull-mode-for-amazon-eks/) mode and NVMe instance store for fast container startup. This is configured automatically through the Helm chart defaults:
+
+- **SOCI Parallel Pull**: Accelerates container image pulls by up to 60% through parallel downloads and unpacking
+- **NVMe Instance Store**: Binds `/var/lib/containerd`, `/var/lib/kubelet`, and `/var/lib/soci-snapshotter` to fast NVMe disks (RAID0)
+- **IMDSv2 Enforced**: Instance metadata service v2 is required for enhanced security
+
+These features are enabled by default on Bottlerocket GPU nodes via the Helm chart `userData` configuration. To disable them, set `userData: ""` and remove `instanceStorePolicy` in the runtime's `extraValues.karpenter.nodeTemplate`.
 
 #### Manual Deployment
 
@@ -710,7 +722,7 @@ The configuration for This guidance is stored in the `config.yaml` file. We prov
               tag: latest # Image tag
     ```
 
-4. Set EBS snapshot-based image cache (optional)
+4. Set EBS snapshot-based image cache (optional, not required when using SOCI Parallel Pull)
 
     If you built an [EBS snapshot-based image cache](#image-cache-building), you need to specify the snapshot ID in the corresponding runtime with the following configuration:
 
