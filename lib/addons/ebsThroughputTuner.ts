@@ -32,7 +32,7 @@ export class EbsThroughputTunerAddOn implements ClusterAddOn {
     const lambdaFunction = new lambda.Function(cluster.stack, 'EbsThroughputTunerLambda', {
       code: lambda.Code.fromAsset(path.join(__dirname, '../../src/tools/ebs_throughput_tuner')),
       handler: 'app.lambda_handler',
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       timeout: cdk.Duration.seconds(lambdaTimeout),
       environment: {
         "TARGET_EC2_TAG_KEY": "stack",

@@ -1,4 +1,5 @@
 import { Duration } from "aws-cdk-lib";
+import * as cr from "aws-cdk-lib/custom-resources";
 import { Rule } from "aws-cdk-lib/aws-events";
 import { SqsQueue } from "aws-cdk-lib/aws-events-targets";
 import { Cluster } from "aws-cdk-lib/aws-eks";
@@ -57,7 +58,20 @@ export class KarpenterAddOn extends blueprints.addons.HelmAddOn {
         effect: iam.Effect.ALLOW,
         actions: ["iam:PassRole"],
         resources: [`${karpenterNodeRole.roleArn}`],
-      })
+      }),
+      // Karpenter v1 manages instance profiles when EC2NodeClass uses `role` field
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "iam:CreateInstanceProfile",
+          "iam:DeleteInstanceProfile",
+          "iam:GetInstanceProfile",
+          "iam:TagInstanceProfile",
+          "iam:AddRoleToInstanceProfile",
+          "iam:RemoveRoleFromInstanceProfile",
+        ],
+        resources: [`*`],
+      }),
     );
 
     // Support for Native spot interruption
@@ -113,9 +127,33 @@ export class KarpenterAddOn extends blueprints.addons.HelmAddOn {
       ],
     });
 
-    new iam.CfnInstanceProfile(cluster, `${stackName}-karpenter-node-instance-profile`, {
-      instanceProfileName: `KarpenterNodeInstanceProfile-${stackName}`,
-      roles: [karpenterNodeRole.roleName],
+    // Karpenter v1 auto-manages instance profiles from the role field in EC2NodeClass
+    // Register node role as EKS access entry for API-based auth (GenericClusterProviderV2)
+    new cr.AwsCustomResource(cluster, `${stackName}-karpenter-access-entry`, {
+      onCreate: {
+        service: 'EKS',
+        action: 'createAccessEntry',
+        parameters: {
+          clusterName: cluster.clusterName,
+          principalArn: karpenterNodeRole.roleArn,
+          type: 'EC2_LINUX',
+        },
+        physicalResourceId: cr.PhysicalResourceId.of(`${stackName}-karpenter-access-entry`),
+      },
+      onDelete: {
+        service: 'EKS',
+        action: 'deleteAccessEntry',
+        parameters: {
+          clusterName: cluster.clusterName,
+          principalArn: karpenterNodeRole.roleArn,
+        },
+      },
+      policy: cr.AwsCustomResourcePolicy.fromStatements([
+        new iam.PolicyStatement({
+          actions: ['eks:CreateAccessEntry', 'eks:DeleteAccessEntry'],
+          resources: [`arn:*:eks:*:*:cluster/${cluster.clusterName}`],
+        }),
+      ]),
     });
 
     return [karpenterNodeRole];
@@ -165,97 +203,33 @@ export class KarpenterAddOn extends blueprints.addons.HelmAddOn {
   }
 
   private getKarpenterControllerPolicy(cluster: Cluster, partition: string, region: string): any {
+    // Based on the official Karpenter v1 controller policy
+    // https://karpenter.sh/docs/getting-started/getting-started-with-karpenter/
     return {
       Version: "2012-10-17",
       Statement: [
         {
-          Sid: "AllowScopedEC2InstanceAccessActions",
+          Sid: "AllowEC2InstanceActions",
           Effect: "Allow",
           Resource: [
+            `arn:${partition}:ec2:${region}::image/*`,
             `arn:${partition}:ec2:${region}:*:instance/*`,
             `arn:${partition}:ec2:${region}:*:spot-instances-request/*`,
+            `arn:${partition}:ec2:${region}:*:security-group/*`,
+            `arn:${partition}:ec2:${region}:*:subnet/*`,
+            `arn:${partition}:ec2:${region}:*:launch-template/*`,
+            `arn:${partition}:ec2:${region}:*:fleet/*`,
+            `arn:${partition}:ec2:${region}:*:volume/*`,
+            `arn:${partition}:ec2:${region}:*:network-interface/*`,
           ],
           Action: [
             "ec2:RunInstances",
-            "ec2:TerminateInstances",
-          ],
-        },
-        {
-          Sid: "AllowScopedEC2LaunchTemplateAccessActions",
-          Effect: "Allow",
-          Resource: `arn:${partition}:ec2:${region}:*:launch-template/*`,
-          Action: [
+            "ec2:CreateFleet",
             "ec2:CreateLaunchTemplate",
-            "ec2:CreateLaunchTemplateVersion",
-            "ec2:DeleteLaunchTemplate",
-            "ec2:DeleteLaunchTemplateVersions",
-          ],
-        },
-        {
-          Sid: "AllowScopedEC2InstanceActionsWithTags",
-          Effect: "Allow",
-          Resource: [
-            `arn:${partition}:ec2:${region}:*:fleet/*`,
-            `arn:${partition}:ec2:${region}:*:instance/*`,
-            `arn:${partition}:ec2:${region}:*:volume/*`,
-            `arn:${partition}:ec2:${region}:*:network-interface/*`,
-            `arn:${partition}:ec2:${region}:*:launch-template/*`,
-            `arn:${partition}:ec2:${region}:*:spot-instances-request/*`,
-          ],
-          Action: [
             "ec2:CreateTags",
-          ],
-          Condition: {
-            StringEquals: {
-              [`ec2:CreateAction`]: [
-                "RunInstances",
-                "CreateFleet",
-                "CreateLaunchTemplate",
-              ],
-            },
-          },
-        },
-        {
-          Sid: "AllowScopedResourceCreationTagging",
-          Effect: "Allow",
-          Resource: [
-            `arn:${partition}:ec2:${region}:*:fleet/*`,
-            `arn:${partition}:ec2:${region}:*:instance/*`,
-            `arn:${partition}:ec2:${region}:*:volume/*`,
-            `arn:${partition}:ec2:${region}:*:network-interface/*`,
-            `arn:${partition}:ec2:${region}:*:launch-template/*`,
-            `arn:${partition}:ec2:${region}:*:spot-instances-request/*`,
-          ],
-          Action: [
-            "ec2:CreateTags",
-          ],
-          Condition: {
-            StringEquals: {
-              [`ec2:CreateAction`]: [
-                "RunInstances",
-                "CreateFleet",
-                "CreateLaunchTemplate",
-              ],
-            },
-          },
-        },
-        {
-          Sid: "AllowScopedDeletion",
-          Effect: "Allow",
-          Resource: [
-            `arn:${partition}:ec2:${region}:*:instance/*`,
-            `arn:${partition}:ec2:${region}:*:launch-template/*`,
-          ],
-          Action: [
             "ec2:TerminateInstances",
             "ec2:DeleteLaunchTemplate",
-            "ec2:DeleteLaunchTemplateVersions",
           ],
-          Condition: {
-            StringLike: {
-              [`ec2:ResourceTag/karpenter.sh/cluster`]: cluster.clusterName,
-            },
-          },
         },
         {
           Sid: "AllowRegionalReadActions",
@@ -288,6 +262,14 @@ export class KarpenterAddOn extends blueprints.addons.HelmAddOn {
           Resource: "*",
           Action: [
             "pricing:GetProducts",
+          ],
+        },
+        {
+          Sid: "AllowEKSReadActions",
+          Effect: "Allow",
+          Resource: `arn:${partition}:eks:${region}:*:cluster/${cluster.clusterName}`,
+          Action: [
+            "eks:DescribeCluster",
           ],
         },
       ],

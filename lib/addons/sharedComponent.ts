@@ -47,7 +47,7 @@ export class SharedComponentAddOn implements ClusterAddOn {
     const v1Alpha1Parser = new lambda.Function(cluster.stack, 'v1Alpha1ParserFunction', {
       code: lambda.Code.fromAsset(path.join(__dirname, '../../src/frontend/input_function/v1alpha1')),
       handler: 'app.lambda_handler',
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       environment: {
         "SNS_TOPIC_ARN": this.options.inputSns.topicArn,
         "S3_OUTPUT_BUCKET": this.options.outputBucket.bucketName
@@ -59,7 +59,7 @@ export class SharedComponentAddOn implements ClusterAddOn {
     const v1Alpha2Parser = new lambda.Function(cluster.stack, 'v1Alpha2ParserFunction', {
       code: lambda.Code.fromAsset(path.join(__dirname, '../../src/frontend/input_function/v1alpha2')),
       handler: 'app.lambda_handler',
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       environment: {
         "SNS_TOPIC_ARN": this.options.inputSns.topicArn,
         "S3_OUTPUT_BUCKET": this.options.outputBucket.bucketName

@@ -1,11 +1,16 @@
 stackName: str()
 modelBucketArn: str(starts_with="arn")
+clusterComponents: include('clusterComponents', required=False)
 APIGW:
   stageName: str()
   throttle:
     rateLimit: int()
     burstLimit: int()
 modelsRuntime: list(include('runtime'), min=1)
+---
+clusterComponents:
+  instanceType: str(required=False)
+  desiredCount: int(min=1, required=False)
 ---
 runtime:
   name: str()
@@ -52,6 +57,7 @@ nodeTemplate:
   subnetSelector: map(str(), str(), required=False)
   tags: map(str(), str(), required=False)
   amiFamily: enum('Bottlerocket', required=False)
+  instanceStorePolicy: enum('RAID0', required=False)
   osVolume: include('ebs', required=False)
   dataVolume: include('ebs', required=False)
   userData: str(required=False)

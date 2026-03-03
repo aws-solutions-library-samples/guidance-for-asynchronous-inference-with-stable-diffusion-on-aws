@@ -9,7 +9,7 @@ export const defaultProps: blueprints.addons.HelmAddOnProps & dcgmExporterAddOnP
   name: 'dcgmExporterAddOn',
   namespace: 'kube-system',
   release: 'dcgm',
-  version: '3.4.0',
+  version: '3.6.0',
   repository: 'https://nvidia.github.io/dcgm-exporter/helm-charts',
   values: {
     serviceMonitor: {
