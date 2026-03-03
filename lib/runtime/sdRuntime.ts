@@ -49,9 +49,10 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
     this.id = id ? id.toLowerCase() : 'sdruntime';
   }
 
-  @blueprints.utils.dependable(blueprints.KarpenterV1AddOn.name)
+  @blueprints.utils.dependable("KarpenterAddOn")
   @blueprints.utils.dependable("SharedComponentAddOn")
   @blueprints.utils.dependable("S3CSIDriverAddOn")
+  @blueprints.utils.dependable(blueprints.KedaAddOn.name)
 
   deploy(clusterInfo: blueprints.ClusterInfo): Promise<Construct> {
     const cluster = clusterInfo.cluster
@@ -91,7 +92,7 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
         'AWSXRayDaemonWriteAccess',
       ))
 
-    const nodeRole = clusterInfo.cluster.node.findChild('karpenter-node-role') as iam.IRole
+    const nodeRole = clusterInfo.cluster.node.findChild(`${cdk.Stack.of(cluster).stackName}-karpenter-node-role`) as iam.IRole
 
     // Resolve image repository: use extraValues override or default per runtime type
     const extraImageRepo = (this.options.extraValues as Record<string, any>)
