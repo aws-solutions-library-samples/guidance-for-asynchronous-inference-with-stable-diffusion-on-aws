@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as blueprints from '@aws-quickstart/eks-blueprints';
 import { Construct } from "constructs";
 import * as eks from "aws-cdk-lib/aws-eks";
-import * as eksv2 from "@aws-cdk/aws-eks-v2-alpha";
+import * as eksv2 from "aws-cdk-lib/aws-eks-v2";
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as s3 from 'aws-cdk-lib/aws-s3';
@@ -182,8 +182,41 @@ export default class DataPlaneStack {
       .clusterProvider(clusterProvider)
       .build(scope, id + 'Stack', props);
 
-    // Provide static output name for cluster
+    // S3 CSI driver v2.4.0 RBAC fix: EKS Blueprints S3CSIDriverAddOn sets
+    // node.serviceAccount.create=false (for IRSA), which skips the chart's RBAC templates.
+    // Add the missing RBAC for the node DaemonSet SA to access mount-s3 namespace and CRDs.
     const cluster = blueprint.getClusterInfo().cluster;
+    cluster.addManifest('s3-csi-node-rbac', {
+      apiVersion: 'rbac.authorization.k8s.io/v1',
+      kind: 'ClusterRole',
+      metadata: { name: 's3-csi-driver-node-clusterrole' },
+      rules: [
+        { apiGroups: [''], resources: ['pods', 'persistentvolumeclaims', 'persistentvolumes', 'serviceaccounts'], verbs: ['get', 'watch', 'list'] },
+        { apiGroups: ['s3.csi.aws.com'], resources: ['mountpoints3podattachments'], verbs: ['create', 'delete', 'update', 'get', 'watch', 'list'] },
+        { apiGroups: ['apiextensions.k8s.io'], resources: ['customresourcedefinitions'], verbs: ['get', 'list', 'watch'] },
+      ],
+    }, {
+      apiVersion: 'rbac.authorization.k8s.io/v1',
+      kind: 'ClusterRoleBinding',
+      metadata: { name: 's3-csi-driver-node-clusterrole-binding' },
+      roleRef: { apiGroup: 'rbac.authorization.k8s.io', kind: 'ClusterRole', name: 's3-csi-driver-node-clusterrole' },
+      subjects: [{ kind: 'ServiceAccount', name: 's3-csi-driver-sa', namespace: 'kube-system' }],
+    }, {
+      apiVersion: 'rbac.authorization.k8s.io/v1',
+      kind: 'Role',
+      metadata: { name: 's3-csi-driver-node-role', namespace: 'mount-s3' },
+      rules: [
+        { apiGroups: [''], resources: ['pods'], verbs: ['get', 'create', 'watch', 'delete', 'list', 'update'] },
+      ],
+    }, {
+      apiVersion: 'rbac.authorization.k8s.io/v1',
+      kind: 'RoleBinding',
+      metadata: { name: 's3-csi-driver-node-role-binding', namespace: 'mount-s3' },
+      roleRef: { apiGroup: 'rbac.authorization.k8s.io', kind: 'Role', name: 's3-csi-driver-node-role' },
+      subjects: [{ kind: 'ServiceAccount', name: 's3-csi-driver-sa', namespace: 'kube-system' }],
+    });
+
+    // Provide static output name for cluster
     try {
       const clusterNameCfnOutput = cluster.node.findChild('ClusterName') as cdk.CfnOutput;
       clusterNameCfnOutput.overrideLogicalId('ClusterName');

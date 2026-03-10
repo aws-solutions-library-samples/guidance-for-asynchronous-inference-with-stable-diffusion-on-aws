@@ -20,7 +20,7 @@ spec:
     - tags:
         "aws:eks:cluster-name": {{ quote .Values.global.stackName }}
 
-  role: {{ .Values.karpenter.nodeTemplate.iamRole }}
+  instanceProfile: {{ .Values.karpenter.nodeTemplate.instanceProfile }}
 
   tags:
     stack: {{ .Values.global.stackName }}

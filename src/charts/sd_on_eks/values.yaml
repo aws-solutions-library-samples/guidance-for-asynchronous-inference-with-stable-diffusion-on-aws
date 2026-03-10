@@ -21,7 +21,7 @@ karpenter:
       consolidateAfter: 30s
       expireAfter: Never
   nodeTemplate:
-    iamRole: ""
+    instanceProfile: ""
     securityGroupSelector: {}
     subnetSelector: {}
     tags: {}

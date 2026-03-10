@@ -6,9 +6,9 @@ Guidance for Asynchronous Image Generation with Stable Diffusion on AWS. A fast-
 
 ## Tech Stack
 
-- AWS CDK (TypeScript) with EKS Blueprints v1.17.4
+- AWS CDK (TypeScript) with EKS Blueprints v1.18.0
 - EKS Kubernetes v1.35
-- Karpenter v1 (stable CRDs: NodePool, EC2NodeClass)
+- Karpenter v1.9.0 (stable CRDs: NodePool, EC2NodeClass)
 - KEDA for queue-based pod autoscaling
 - Bottlerocket OS on GPU nodes
 - SOCI Parallel Pull for fast container image loading
@@ -89,9 +89,9 @@ Custom: SharedComponentAddOn, EbsThroughputTunerAddOn, dcgmExporterAddOn, SDRunt
 
 ## Dependencies
 
-- `@aws-quickstart/eks-blueprints`: 1.17.4
-- `aws-cdk-lib`: 2.215.0
-- `aws-cdk` (CLI): 2.1029.2
+- `@aws-quickstart/eks-blueprints`: 1.18.0
+- `aws-cdk-lib`: 2.241.0
+- `aws-cdk` (CLI): 2.1109.0
 - `typescript`: ~5.7.0
 
 ## Key Patterns

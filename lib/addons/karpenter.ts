@@ -1,10 +1,11 @@
-import { Duration } from "aws-cdk-lib";
+import { Duration, CustomResource, RemovalPolicy } from "aws-cdk-lib";
 import * as cr from "aws-cdk-lib/custom-resources";
 import { Rule } from "aws-cdk-lib/aws-events";
 import { SqsQueue } from "aws-cdk-lib/aws-events-targets";
 import { Cluster } from "aws-cdk-lib/aws-eks";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as sqs from "aws-cdk-lib/aws-sqs";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as blueprints from '@aws-quickstart/eks-blueprints';
 
@@ -18,7 +19,7 @@ export const defaultProps: blueprints.addons.HelmAddOnProps & KarpenterAddOnProp
   name: 'KarpenterAddOn',
   namespace: 'kube-system',
   release: 'karpenter',
-  version: '1.6.3',
+  version: '1.9.0',
   repository: 'oci://public.ecr.aws/karpenter/karpenter',
   interruptionHandling: true,
   values: {}
@@ -59,13 +60,13 @@ export class KarpenterAddOn extends blueprints.addons.HelmAddOn {
         actions: ["iam:PassRole"],
         resources: [`${karpenterNodeRole.roleArn}`],
       }),
-      // Karpenter v1 manages instance profiles when EC2NodeClass uses `role` field
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: [
           "iam:CreateInstanceProfile",
           "iam:DeleteInstanceProfile",
           "iam:GetInstanceProfile",
+          "iam:ListInstanceProfiles",
           "iam:TagInstanceProfile",
           "iam:AddRoleToInstanceProfile",
           "iam:RemoveRoleFromInstanceProfile",
@@ -127,7 +128,84 @@ export class KarpenterAddOn extends blueprints.addons.HelmAddOn {
       ],
     });
 
-    // Karpenter v1 auto-manages instance profiles from the role field in EC2NodeClass
+    // CDK-managed instance profile for Karpenter nodes.
+    // Using instanceProfile field instead of role field in EC2NodeClass ensures the
+    // instance profile is part of the CloudFormation stack lifecycle, avoiding
+    // orphaned instance profiles that block stack deletion.
+    const instanceProfile = new iam.CfnInstanceProfile(cluster, `${stackName}-karpenter-instance-profile`, {
+      roles: [karpenterNodeRole.roleName],
+      instanceProfileName: `${stackName}-karpenter-node-profile`,
+    });
+
+    // Terminate Karpenter-launched instances and clean up instance profiles on stack deletion.
+    // Karpenter tags all instances it launches, so we can find and terminate them.
+    const cleanupFn = new lambda.Function(cluster, `${stackName}-karpenter-cleanup-fn`, {
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: 'index.handler',
+      timeout: Duration.minutes(5),
+      code: lambda.Code.fromInline(`
+import boto3, json, time
+import cfnresponse
+
+def handler(event, context):
+    if event['RequestType'] != 'Delete':
+        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+        return
+    try:
+        ec2 = boto3.client('ec2')
+        cluster_name = event['ResourceProperties']['ClusterName']
+        instance_profile = event['ResourceProperties']['InstanceProfileName']
+        # Find and terminate Karpenter-launched instances
+        resp = ec2.describe_instances(Filters=[
+            {'Name': 'tag:karpenter.sh/nodepool', 'Values': ['*']},
+            {'Name': f'tag:kubernetes.io/cluster/{cluster_name}', 'Values': ['owned']},
+            {'Name': 'instance-state-name', 'Values': ['running', 'pending', 'stopping']},
+        ])
+        ids = [i['InstanceId'] for r in resp['Reservations'] for i in r['Instances']]
+        if ids:
+            print(f'Terminating {len(ids)} Karpenter instances: {ids}')
+            ec2.terminate_instances(InstanceIds=ids)
+            waiter = ec2.get_waiter('instance_terminated')
+            waiter.wait(InstanceIds=ids, WaiterConfig={'Delay': 10, 'MaxAttempts': 30})
+        # Clean up instance profile
+        iam_client = boto3.client('iam')
+        try:
+            ip = iam_client.get_instance_profile(InstanceProfileName=instance_profile)
+            for role in ip['InstanceProfile']['Roles']:
+                iam_client.remove_role_from_instance_profile(
+                    InstanceProfileName=instance_profile, RoleName=role['RoleName'])
+        except iam_client.exceptions.NoSuchEntityException:
+            pass
+        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+    except Exception as e:
+        print(f'Cleanup error (non-fatal): {e}')
+        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+`),
+    });
+    cleanupFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ec2:DescribeInstances', 'ec2:TerminateInstances'],
+      resources: ['*'],
+    }));
+    cleanupFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['iam:GetInstanceProfile', 'iam:RemoveRoleFromInstanceProfile'],
+      resources: [`arn:*:iam::*:instance-profile/${stackName}-karpenter-node-profile`],
+    }));
+
+    const cleanupProvider = new cr.Provider(cluster, `${stackName}-karpenter-cleanup-provider`, {
+      onEventHandler: cleanupFn,
+    });
+    const cleanup = new CustomResource(cluster, `${stackName}-karpenter-cleanup`, {
+      serviceToken: cleanupProvider.serviceToken,
+      removalPolicy: RemovalPolicy.DESTROY,
+      properties: {
+        ClusterName: cluster.clusterName,
+        InstanceProfileName: `${stackName}-karpenter-node-profile`,
+      },
+    });
+    // Ensure cleanup runs before role and instance profile are deleted
+    karpenterNodeRole.node.addDependency(cleanup);
+    instanceProfile.node.addDependency(cleanup);
+
     // Register node role as EKS access entry for API-based auth (GenericClusterProviderV2)
     new cr.AwsCustomResource(cluster, `${stackName}-karpenter-access-entry`, {
       onCreate: {
@@ -151,7 +229,14 @@ export class KarpenterAddOn extends blueprints.addons.HelmAddOn {
       policy: cr.AwsCustomResourcePolicy.fromStatements([
         new iam.PolicyStatement({
           actions: ['eks:CreateAccessEntry', 'eks:DeleteAccessEntry'],
-          resources: [`arn:*:eks:*:*:cluster/${cluster.clusterName}`],
+          resources: [
+            `arn:*:eks:*:*:cluster/${cluster.clusterName}`,
+            `arn:*:eks:*:*:access-entry/${cluster.clusterName}/*`,
+          ],
+        }),
+        new iam.PolicyStatement({
+          actions: ['iam:PassRole'],
+          resources: [karpenterNodeRole.roleArn],
         }),
       ]),
     });
@@ -237,6 +322,7 @@ export class KarpenterAddOn extends blueprints.addons.HelmAddOn {
           Resource: "*",
           Action: [
             "ec2:DescribeAvailabilityZones",
+            "ec2:DescribeCapacityReservations",
             "ec2:DescribeImages",
             "ec2:DescribeInstances",
             "ec2:DescribeInstanceTypeOfferings",
