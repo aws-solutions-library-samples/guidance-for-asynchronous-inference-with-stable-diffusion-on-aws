@@ -32,7 +32,7 @@ export const defaultProps: blueprints.addons.HelmAddOnProps & SDRuntimeAddOnProp
   name: 'sdRuntimeAddOn',
   namespace: 'sdruntime',
   release: 'sdruntime',
-  version: '1.2.0',
+  version: '1.3.0',
   repository: 'oci://public.ecr.aws/bingjiao/charts/sd-on-eks',
   values: {},
   type: "sdwebui"
@@ -92,7 +92,7 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
         'AWSXRayDaemonWriteAccess',
       ))
 
-    const nodeRole = clusterInfo.cluster.node.findChild(`${cdk.Stack.of(cluster).stackName}-karpenter-node-role`) as iam.IRole
+    const instanceProfileName = `${cdk.Stack.of(cluster).stackName}-karpenter-node-profile`;
 
     // Resolve image repository: use extraValues override or default per runtime type
     const extraImageRepo = (this.options.extraValues as Record<string, any>)
@@ -127,7 +127,7 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
       },
       karpenter: {
         nodeTemplate: {
-          iamRole: nodeRole.roleName
+          instanceProfile: instanceProfileName
         }
       }
     }

@@ -1,5 +1,5 @@
 stackName: sdoneks
-modelBucketArn: arn:aws:s3:::sdoneks-model-bucket-51a6
+modelBucketArn: arn:aws:s3:::dummy-bucket
 clusterComponents:
   instanceType: m7g.large
   desiredCount: 2
