@@ -12,7 +12,7 @@
     "@types/node": "^25.3.3",
     "aws-cdk": "2.1109.0",
     "ts-node": "^10.9.1",
-    "typescript": "~5.9.0"
+    "typescript": "~6.0.3"
   },
   "dependencies": {
     "@aws-quickstart/eks-blueprints": "1.18.0",
