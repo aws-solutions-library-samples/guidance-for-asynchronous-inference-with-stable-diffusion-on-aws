@@ -19,7 +19,7 @@
     "aws-cdk-lib": "2.241.0",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21",
-    "yaml": "^2.3.2"
+    "yaml": "^2.8.3"
   },
   "overrides": {
     "glob": "^12.0.0",
